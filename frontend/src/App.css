@@ -1,0 +1,135 @@
+.skip-link {
+  position: absolute;
+  top: -4rem;
+  left: 1rem;
+  z-index: 1;
+  padding: 0.75rem 1rem;
+  color: #fff;
+  background: #19382d;
+}
+
+.skip-link:focus {
+  top: 1rem;
+}
+
+.app-header {
+  padding: 1.25rem 2rem;
+  border-bottom: 1px solid #dde3e8;
+  background: #fff;
+}
+
+.app-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  max-width: 72rem;
+  margin: 0 auto;
+}
+
+.brand-mark {
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 0.5rem;
+  color: #fff;
+  background: #19382d;
+  font-weight: 700;
+}
+
+.brand-title,
+.brand-description {
+  margin: 0;
+}
+
+.brand-title {
+  font-weight: 700;
+}
+
+.brand-description {
+  color: #5f6c78;
+  font-size: 0.875rem;
+}
+
+.app-layout {
+  display: grid;
+  grid-template-columns: 12rem minmax(0, 1fr);
+  gap: 2rem;
+  max-width: 76rem;
+  margin: 2rem auto;
+  padding: 0 2rem;
+}
+
+.module-navigation {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  align-self: start;
+}
+
+.module-navigation button {
+  padding: 0.75rem 1rem;
+  border: 1px solid transparent;
+  border-radius: 0.375rem;
+  color: #40515f;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.module-navigation button:hover {
+  background: #e9eef1;
+}
+
+.module-navigation button[aria-current='page'] {
+  color: #19382d;
+  background: #e0ede7;
+  font-weight: 600;
+}
+
+.main-content {
+  min-height: 20rem;
+  padding: 2rem;
+  border: 1px solid #dde3e8;
+  border-radius: 0.5rem;
+  background: #fff;
+}
+
+.main-content h1 {
+  margin: 0 0 0.5rem;
+  font-size: 1.75rem;
+}
+
+.module-description {
+  margin: 0;
+  color: #5f6c78;
+}
+
+.module-notice {
+  margin: 2rem 0 0;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e5eaee;
+  color: #5f6c78;
+}
+
+@media (max-width: 640px) {
+  .app-header {
+    padding: 1rem;
+  }
+
+  .app-layout {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    margin: 1rem auto;
+    padding: 0 1rem;
+  }
+
+  .module-navigation {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  .main-content {
+    padding: 1.5rem;
+  }
+}
