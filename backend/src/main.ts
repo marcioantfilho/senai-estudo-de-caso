@@ -5,13 +5,14 @@ import { NestExpressApplication } from '@nestjs/platform-express';
 import { AppModule } from './app.module';
 import { loadAppConfig } from './config/app.config';
 import { ApiExceptionFilter } from './shared/http/api-exception.filter';
+import { API_PREFIX } from './shared/http/api-routes';
 
 async function bootstrap(): Promise<void> {
   const config = loadAppConfig();
   const app = await NestFactory.create<NestExpressApplication>(AppModule, { bodyParser: false });
 
   app.useBodyParser('text', { type: () => true });
-  app.setGlobalPrefix('api/v1');
+  app.setGlobalPrefix(API_PREFIX);
   app.useGlobalFilters(new ApiExceptionFilter());
   app.enableCors({ origin: config.frontendOrigin });
   app.enableShutdownHooks();
