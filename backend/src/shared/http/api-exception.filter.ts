@@ -1,5 +1,6 @@
 import { ArgumentsHost, Catch, ExceptionFilter, HttpException, HttpStatus, Logger } from '@nestjs/common';
 import { Response } from 'express';
+import { ApiException } from './api.exception';
 
 const CLIENT_ERROR_MESSAGE = 'Requisição inválida.';
 const SERVER_ERROR_MESSAGE = 'Erro interno do servidor.';
@@ -26,7 +27,8 @@ export class ApiExceptionFilter implements ExceptionFilter {
       this.logger.error(exception instanceof Error ? exception.stack : String(exception));
     }
 
-    response.status(status).json({ message: defaultMessage(status) });
+    const message = exception instanceof ApiException ? exception.message : defaultMessage(status);
+    response.status(status).json({ message });
   }
 }
 
