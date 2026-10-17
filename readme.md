@@ -91,8 +91,10 @@ pastas de Prisma, testes e frontend abaixo representam as próximas etapas.
 ```
 
 Cada módulo contém seu arquivo `*.module.ts` e as quatro pastas de camadas.
-Enquanto não houver casos de uso, essas pastas contêm somente `.gitkeep` para
-serem preservadas no Git. Nenhum controller, serviço ou endpoint foi criado por ora.
+Pastas ainda sem casos de uso contêm somente `.gitkeep` para serem preservadas
+no Git. Em Jogadores, cada endpoint tem um caso de uso próprio em `application/`
+(`*.use-case.ts`), que depende da porta `PlayerRepository`, implementada com
+Prisma em `infrastructure/`.
 O `AppModule` registra `PlayersModule`, `ClubsModule`, `MarketModule` e
 `LeagueModule` no mesmo processo.
 
@@ -228,8 +230,9 @@ No PowerShell, substitua `cp .env.example .env` por
 utilize `npm.cmd` nos comandos npm.
 
 **Origem configurada da API:** `http://localhost:3000`, sem o prefixo.
-**Prefixo HTTP:** `/api/v1`. Ainda não existem rotas funcionais; acessar uma
-rota neste estágio retorna 404. O bootstrap configura CORS restrito e os sinais
+**Prefixo HTTP:** `/api/v1`. Rotas disponíveis: `POST /players`,
+`GET /players/{id}`, `PUT /players/{id}`, `PATCH /players/{id}/condition` e
+`DELETE /players/{id}`; as demais respondem 404. O bootstrap configura CORS restrito e os sinais
 de encerramento do NestJS. Porta ou origem inválidas impedem a inicialização,
 com uma mensagem de configuração.
 
@@ -259,8 +262,8 @@ interface, API e banco com um único comando.
 
 ## Rastreabilidade inicial
 
-Todos os itens funcionais abaixo permanecem pendentes. Este quadro registra os
-responsáveis previstos e os critérios relacionados, sem declarar conformidade.
+Este quadro registra os responsáveis e os critérios relacionados, sem declarar
+conformidade; o que falta está em "Funcionalidades não implementadas".
 V1–V9 deverão ser aplicadas em todos os endpoints pertinentes.
 Atualizarei os requisitos conforme vou avançando e realizando-as.
 
@@ -287,13 +290,12 @@ Atualizarei os requisitos conforme vou avançando e realizando-as.
 - Arquitetura modular em camadas, sem microsserviços, event sourcing, CQRS ou
   autenticação, conforme a aprovação inicial.
 - Identificadores de código em inglês; nomes HTTP e do banco seguirão o enunciado.
-- Nenhum contrato HTTP ou cálculo foi implementado; o modelo de dados do C03
-  é o do enunciado, sem tabelas ou colunas extras.
+- O modelo de dados do C03 é o do enunciado, sem tabelas ou colunas extras.
 - A imagem fixa a versão principal 16; atualizações de patch seguem a tag oficial.
 - No C01, a configuração HTTP é uma função de inicialização. Não foi criada uma
   camada de serviços genéricos ou uma biblioteca extra para carregar `.env`.
-- Serviços, controllers, regras e repositórios serão introduzidos junto com seus
-  casos de uso; o código atual apenas registra os módulos e compõe a aplicação.
+- Serviços, controllers, regras e repositórios são introduzidos junto com seus
+  casos de uso.
 - No C03, listas de valores são `VARCHAR` com `CHECK`, e não enums do Prisma,
   para manter os tipos oficiais. A unicidade do nome do clube usa índice em
   `lower(nome)` na migration, sem coluna extra preenchida pela aplicação.
@@ -303,11 +305,29 @@ Atualizarei os requisitos conforme vou avançando e realizando-as.
   só implementação, em `src/modules/players/domain/`, reutilizada pelos demais módulos.
 - Prisma e transações ficam em `src/infrastructure/database/`
   (`PrismaService` e `TransactionRunner`); controllers e domain não os importam.
+- Jogadores: a validação do corpo fica em pipes (`http/player-body.pipes.ts`),
+  com recusa `400` antes de consultar o banco; inexistente ou excluído (`404`) e
+  regras de negócio (`409`) são conferidos depois, nos casos de uso. As regras
+  que cruzam campos (agilidade com 35 anos ou mais, soma dos atributos e
+  potencial) também são `400`, por estarem em "Limites de cada campo".
+- No `PUT`, a agilidade máxima de 85 com 35 anos ou mais vale para a agilidade e
+  a idade enviadas; o potencial não é conferido de novo, porque não muda.
+- No nome do jogador, conta como palavra o trecho entre espaços com pelo menos
+  uma letra (V4); outros caracteres, como hífen e apóstrofo, são aceitos.
+- Na alteração para a condição atual, a resposta é `200` e nada é gravado,
+  inclusive `atualizado_em`.
 
 ## Funcionalidades não implementadas
 
-RN01–RN21, V1–V9, fluxos B01–B22 e F01–F14; inicialização do projeto React; integração HTTP; 
-compra, venda, históricos, escalação, partidas e classificação. A arquitetura descrita
+Implementados: cálculos da RN02–RN06 e os endpoints de cadastro, consulta,
+edição, alteração de condição e exclusão lógica de jogadores (RN06, RN08, RN09,
+com V1–V9 nesses endpoints).
+
+Pendentes: listagem `GET /players` (RN07) e RN01, RN10–RN21 com seus fluxos;
+a saída da escalação do titular que passa a `DOENTE`, na mesma transação da
+alteração de condição (RN19, prevista para o C15); inicialização do projeto
+React e integração HTTP; compra, venda, históricos, escalação, partidas e
+classificação. A arquitetura descrita
 é uma proposta de organização para a implementação já aprovada por mim.
 
 ## Uso de inteligência artificial
