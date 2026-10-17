@@ -29,10 +29,13 @@ permanecem pendentes.
 | `rxjs` | 7.8.2 | Dependência de execução do NestJS |
 | `typescript` | 5.9.3 | Compilação com tipagem estrita |
 | `@types/node` | 22.x | Tipos do runtime Node.js adotado |
-| `vitest` | 3.2.4 | Testes automatizados dos cálculos de domínio, sem modo de observação |
+| `vitest` | 4.1.11 | Testes automatizados dos cálculos de domínio, sem modo de observação |
 
 O `backend/package-lock.json` fixa as versões resolvidas. A instalação é feita
-com `npm ci`. O arquivo `.env` é carregado pelo suporte nativo do Node.js, sem
+com `npm ci`. O campo `allowScripts` do `package.json` aprova os scripts de
+instalação do Prisma, que baixam os motores usados pelas migrations e pelo
+cliente; o npm 10 executa esses scripts por padrão, e o npm 12 exige essa
+aprovação. O arquivo `.env` é carregado pelo suporte nativo do Node.js, sem
 biblioteca adicional de configuração. Prisma e as dependências do frontend
 serão adicionados nas respectivas tarefas.
 

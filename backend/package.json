@@ -26,6 +26,11 @@
     "@types/node": "^22.0.0",
     "prisma": "6.19.3",
     "typescript": "5.9.3",
-    "vitest": "3.2.4"
+    "vitest": "4.1.11"
+  },
+  "allowScripts": {
+    "prisma@6.19.3": true,
+    "@prisma/client@6.19.3": true,
+    "@prisma/engines@6.19.3": true
   }
 }
