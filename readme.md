@@ -5,8 +5,10 @@ liga fictícia. O fluxo previsto é: cadastrar jogadores e clubes, comprar e ven
 jogadores com contrato de fidelidade, consultar o histórico, escalar titulares,
 jogar partidas e consultar a classificação.
 
-**Etapa atual:** ideia inicial, arquitetura planejada e Docker básico para o
-PostgreSQL. Backend, frontend e regras de negócio ainda não foram implementados.
+**Etapa atual:** composição inicial do backend NestJS (C01) e base React/Vite
+do frontend (C02), com navegação pelos quatro módulos. O Docker continua limitado ao PostgreSQL; o schema do
+banco (C03) está versionado em migrations e as funcionalidades de negócio
+permanecem pendentes.
 
 ## Stack e bibliotecas previstas
 
@@ -17,8 +19,22 @@ PostgreSQL. Backend, frontend e regras de negócio ainda não foram implementado
 | Persistência | PostgreSQL 16 + Prisma | Dados, migrations e acesso transacional |
 | Ambiente local | Docker Engine + Compose v2 | Execução do PostgreSQL |
 
-Nenhuma biblioteca da aplicação foi instalada nesta etapa. Suas versões e
-arquivos de trava serão definidos quando os projetos forem inicializados.
+### Dependências do backend
+
+| Biblioteca | Versão | Uso |
+| --- | --- | --- |
+| `@nestjs/common` e `@nestjs/core` | 11.2.7 | Composição dos módulos e inicialização da aplicação |
+| `@nestjs/platform-express` | 11.2.7 | Adaptador HTTP padrão do NestJS |
+| `reflect-metadata` | 0.2.2 | Metadados dos decorators usados pelo NestJS |
+| `rxjs` | 7.8.2 | Dependência de execução do NestJS |
+| `typescript` | 5.9.3 | Compilação com tipagem estrita |
+| `@types/node` | 22.x | Tipos do runtime Node.js adotado |
+| `vitest` | 3.2.4 | Testes automatizados dos cálculos de domínio, sem modo de observação |
+
+O `backend/package-lock.json` fixa as versões resolvidas. A instalação é feita
+com `npm ci`. O arquivo `.env` é carregado pelo suporte nativo do Node.js, sem
+biblioteca adicional de configuração. Prisma e as dependências do frontend
+serão adicionados nas respectivas tarefas.
 
 ## Arquitetura planejada
 
@@ -39,7 +55,8 @@ por fidelidade (isso é inegociável, vide documentação proposta). O frontend 
 e a ordem devolvidos pela API,
 respeitando as exceções expressas no enunciado. O frontend JAMAIS fará recálculos, conforme solicitado.
 
-Estrutura proposta (prevista):
+Estrutura do projeto: a composição e as camadas do backend foram criadas. As
+pastas de Prisma, testes e frontend abaixo representam as próximas etapas.
 
 ```text
 .
@@ -48,11 +65,16 @@ Estrutura proposta (prevista):
 ├── .env.example
 ├── .gitignore
 ├── backend/
+│   ├── package.json
+│   ├── package-lock.json
+│   ├── tsconfig.json
+│   ├── .env.example
 │   ├── prisma/                 # Schema e migrations
 │   ├── test/
 │   └── src/
 │       ├── main.ts
 │       ├── app.module.ts
+│       ├── config/app.config.ts
 │       └── modules/
 │           ├── players/        # Jogadores
 │           ├── clubs/          # Clubes
@@ -64,6 +86,12 @@ Estrutura proposta (prevista):
         ├── modules/            # players/, clubs/, market/, league/
         └── shared/             # Cliente HTTP e componentes reutilizados
 ```
+
+Cada módulo contém seu arquivo `*.module.ts` e as quatro pastas de camadas.
+Enquanto não houver casos de uso, essas pastas contêm somente `.gitkeep` para
+serem preservadas no Git. Nenhum controller, serviço ou endpoint foi criado por ora.
+O `AppModule` registra `PlayersModule`, `ClubsModule`, `MarketModule` e
+`LeagueModule` no mesmo processo.
 
 ## Docker básico: PostgreSQL
 
@@ -103,9 +131,50 @@ docker compose down --volumes
 docker compose up -d --wait --wait-timeout 60 db
 ```
 
-O Compose inicializa só o servidor e o banco vazio. Não cria as sete tabelas
-obrigatórias que propõe o documento. Migrations, restrições e recriação do schema da
-aplicação permanecem pendentes nesse momento incial, assim como o critério B3 integral.
+O Compose inicializa só o servidor e o banco vazio. As sete tabelas obrigatórias
+são criadas pelas migrations do Prisma, a partir da pasta `backend/`, com o banco
+ativo e o `backend/.env` criado (`DATABASE_URL`):
+
+```sh
+cd backend
+npm ci
+npm run db:migrate
+```
+
+Para **recriar o schema do zero** (apaga as tabelas e os dados, sem seed
+automático), na pasta `backend/`:
+
+```sh
+npm run db:reset
+```
+
+Alternativa, recriando também o volume do PostgreSQL: `docker compose down --volumes`,
+`docker compose up -d --wait --wait-timeout 60 db` e `npm run db:migrate`.
+O banco criado começa vazio, sem jogadores, clubes, transações nem partidas; não
+há dados de exemplo.
+
+O modelo está em `backend/prisma/schema.prisma` e o SQL em
+`backend/prisma/migrations/`. Os modelos têm nomes em inglês e são mapeados
+para os nomes oficiais (`jogadores`, `clubes`, `contratos`, `transacoes`,
+`escalacoes`, `partidas` e `duelos_partida`). Moedas são `DECIMAL`, e não há
+colunas de valor de mercado, overall, valor do elenco, patrimônio, dias
+restantes, percentual de multa, pontos ou posição. Na migration, além do que o
+Prisma gera:
+
+- índice único em `lower(nome)` de `clubes`: "Águias FC" e "águias fc" colidem,
+  "Águias FC" e "Aguias FC" não (a sigla tem `UNIQUE` próprio);
+- `escalacoes` com chave primária composta (`clube_id`, `jogador_id`) e
+  `jogador_id` único;
+- `CHECK` para listas de valores (posição, condição, tipo, situação, formação),
+  faixas dos atributos, da agilidade e da idade, gols de 0 a 3 e duelos de 1 a 6.
+
+Conferência das restrições no PostgreSQL (`docker compose exec db psql -U liga -d liga`):
+
+```sql
+INSERT INTO clubes (nome, sigla) VALUES ('Águias FC', 'AGU');
+INSERT INTO clubes (nome, sigla) VALUES ('águias fc', 'AGX'); -- recusado
+INSERT INTO clubes (nome, sigla) VALUES ('Aguias FC', 'AGA'); -- aceito
+```
 
 ## Variáveis de ambiente
 
@@ -117,13 +186,71 @@ aplicação permanecem pendentes nesse momento incial, assim como o critério B3
 | `POSTGRES_PORT` | `5432` | Porta publicada somente em `127.0.0.1` |
 
 O `.env.example` é versionado; o `.env` é ignorado pelo Git. Não usei credenciais
-reais. A conexão do Prisma será configurada na tarefa de persistência.
+reais.
+
+Configuração HTTP do backend, em `backend/.env.example`:
+
+| Variável | Valor de exemplo | Finalidade |
+| --- | --- | --- |
+| `PORT` | `3000` | Porta HTTP, inteiro entre 1 e 65535 |
+| `FRONTEND_ORIGIN` | `http://localhost:5173` | Única origem liberada por CORS |
+| `DATABASE_URL` | `postgresql://liga:liga_dev_local@localhost:5432/liga?schema=public` | Conexão com o PostgreSQL, usada pela aplicação e pelo Prisma; sem valor padrão |
+
+A origem deve usar HTTP ou HTTPS, sem caminho, barra final ou curinga. Os valores
+de exemplo também são os padrões quando as variáveis não estão definidas.
+Variáveis já presentes no ambiente têm precedência sobre o `.env`.
 
 ## Execução da aplicação
 
-Pendente: ainda não há comandos de instalação, build ou execução do backend e
-frontend. A API seguirá o prefixo obrigatório `/api/v1`; as URLs serão
-documentadas quando os servidores forem implementados e verificados.
+### Backend
+
+Pré-requisitos: Node.js **22 LTS, a partir de 22.12.0**, e npm **10 ou superior**.
+O código usa CommonJS, decorators compatíveis com NestJS e TypeScript estrito.
+
+No Ubuntu 24.04, a partir da raiz do repositório:
+
+```sh
+cd backend
+cp .env.example .env
+npm ci
+npm run db:migrate
+npm run build
+npm start
+```
+
+Com o PostgreSQL ativo (seção Docker básico) antes do `db:migrate`.
+
+No PowerShell, substitua `cp .env.example .env` por
+`Copy-Item .env.example .env`. Se a execução de `npm.ps1` estiver bloqueada,
+utilize `npm.cmd` nos comandos npm.
+
+**Origem configurada da API:** `http://localhost:3000`, sem o prefixo.
+**Prefixo HTTP:** `/api/v1`. Ainda não existem rotas funcionais; acessar uma
+rota neste estágio retorna 404. O bootstrap configura CORS restrito e os sinais
+de encerramento do NestJS. Porta ou origem inválidas impedem a inicialização,
+com uma mensagem de configuração.
+
+O backend conecta ao PostgreSQL ao iniciar e encerra com mensagem de configuração
+se `DATABASE_URL` estiver ausente, inválida ou o banco inativo. `npm run build`
+também gera o cliente do Prisma.
+
+### Testes do backend
+
+Na pasta `backend/`, depois do `npm ci` (não precisa do banco):
+
+```sh
+npm test
+```
+
+O comando termina sozinho e cobre o valor de mercado (RN02–RN05), o overall e
+o valor base (RN06) e o arredondamento de moedas, com as tabelas de exemplo do
+enunciado. Os testes ficam em `backend/test/`.
+
+### Frontend
+
+A inicialização do React/Vite e seus comandos de instalação e execução ficam
+para o C02.
+
 O Compose atual sobe apenas o banco; não atende ao diferencial B5 de subir
 interface, API e banco com um único comando.
 
@@ -157,15 +284,28 @@ Atualizarei os requisitos conforme vou avançando e realizando-as.
 - Arquitetura modular em camadas, sem microsserviços, event sourcing, CQRS ou
   autenticação, conforme a aprovação inicial.
 - Identificadores de código em inglês; nomes HTTP e do banco seguirão o enunciado.
-- Nenhum contrato HTTP, modelo de dados ou cálculo foi implementado ou alterado.
+- Nenhum contrato HTTP ou cálculo foi implementado; o modelo de dados do C03
+  é o do enunciado, sem tabelas ou colunas extras.
 - A imagem fixa a versão principal 16; atualizações de patch seguem a tag oficial.
+- No C01, a configuração HTTP é uma função de inicialização. Não foi criada uma
+  camada de serviços genéricos ou uma biblioteca extra para carregar `.env`.
+- Serviços, controllers, regras e repositórios serão introduzidos junto com seus
+  casos de uso; o código atual apenas registra os módulos e compõe a aplicação.
+- No C03, listas de valores são `VARCHAR` com `CHECK`, e não enums do Prisma,
+  para manter os tipos oficiais. A unicidade do nome do clube usa índice em
+  `lower(nome)` na migration, sem coluna extra preenchida pela aplicação.
+- Cálculos em moedas são feitos em centavos inteiros (percentuais em centésimos
+  de ponto), sem erro de ponto flutuante, e arredondados uma única vez no final
+  (`src/shared/domain/money.ts`). Valor de mercado, overall e valor base têm uma
+  só implementação, em `src/modules/players/domain/`, reutilizada pelos demais módulos.
+- Prisma e transações ficam em `src/infrastructure/database/`
+  (`PrismaService` e `TransactionRunner`); controllers e domain não os importam.
 
 ## Funcionalidades não implementadas
 
-RN01–RN21, V1–V9, fluxos B01–B22 e F01–F14; inicialização dos projetos NestJS e
-React; schema e migrations Prisma; testes funcionais; integração HTTP; compra,
-venda, históricos, escalação, partidas e classificação. A arquitetura descrita
-é uma proposta de organização para a implementação já aprovada.
+RN01–RN21, V1–V9, fluxos B01–B22 e F01–F14; inicialização do projeto React; integração HTTP; 
+compra, venda, históricos, escalação, partidas e classificação. A arquitetura descrita
+é uma proposta de organização para a implementação já aprovada por mim.
 
 ## Uso de inteligência artificial
 
