@@ -230,7 +230,7 @@ No PowerShell, substitua `cp .env.example .env` por
 utilize `npm.cmd` nos comandos npm.
 
 **Origem configurada da API:** `http://localhost:3000`, sem o prefixo.
-**Prefixo HTTP:** `/api/v1`. Rotas disponíveis: `POST /players`,
+**Prefixo HTTP:** `/api/v1`. Rotas disponíveis: `GET /players`, `POST /players`,
 `GET /players/{id}`, `PUT /players/{id}`, `PATCH /players/{id}/condition` e
 `DELETE /players/{id}`; as demais respondem 404. O bootstrap configura CORS restrito e os sinais
 de encerramento do NestJS. Porta ou origem inválidas impedem a inicialização,
@@ -249,8 +249,9 @@ npm test
 ```
 
 O comando termina sozinho e cobre o valor de mercado (RN02–RN05), o overall e
-o valor base (RN06) e o arredondamento de moedas, com as tabelas de exemplo do
-enunciado. Os testes ficam em `backend/test/`.
+o valor base (RN06), o arredondamento de moedas, a ordem alfabética das
+Premissas, a busca sem acentos e a paginação (RN07), com as tabelas de exemplo
+do enunciado. Os testes ficam em `backend/test/`.
 
 ### Frontend
 
@@ -316,14 +317,29 @@ Atualizarei os requisitos conforme vou avançando e realizando-as.
   uma letra (V4); outros caracteres, como hífen e apóstrofo, são aceitos.
 - Na alteração para a condição atual, a resposta é `200` e nada é gravado,
   inclusive `atualizado_em`.
+- Em `GET /players`, o banco aplica os filtros que não dependem de cálculo
+  (posição, condição, livres ou com clube, clube e idade); a busca, a faixa e a
+  ordenação pelo valor de mercado e a paginação são feitas na aplicação, com o
+  valor calculado pelo domínio. Assim o valor de mercado tem uma única
+  implementação, sem fórmula repetida em SQL, e a busca e a ordem alfabética
+  seguem exatamente a V4 e as Premissas (NFD sem marcas, comparação por ponto
+  de código), sem depender de collation ou extensões do PostgreSQL. Com o limite
+  de 12 jogadores por elenco e 20 clubes, o volume de dados é pequeno.
+- No `sort`, o campo de cada opção é o nome antes do sufixo (`value_asc` e
+  `value_desc` são `value`); repetir o campo, passar de dois critérios ou
+  incluir espaços é recusado com `400`.
+- Parâmetro repetido (como `position=MEI&position=ATA`) é recusado com `400`,
+  como o parâmetro vazio.
+- A existência do clube do filtro `club_id` é conferida pelo `ClubRepository`
+  do módulo Clubes, exportado para Jogadores.
 
 ## Funcionalidades não implementadas
 
-Implementados: cálculos da RN02–RN06 e os endpoints de cadastro, consulta,
-edição, alteração de condição e exclusão lógica de jogadores (RN06, RN08, RN09,
-com V1–V9 nesses endpoints).
+Implementados: cálculos da RN02–RN06 e os endpoints de listagem, cadastro,
+consulta, edição, alteração de condição e exclusão lógica de jogadores (RN06 a
+RN09, com V1–V9 nesses endpoints).
 
-Pendentes: listagem `GET /players` (RN07) e RN01, RN10–RN21 com seus fluxos;
+Pendentes: RN01, RN10–RN21 com seus fluxos;
 a saída da escalação do titular que passa a `DOENTE`, na mesma transação da
 alteração de condição (RN19, prevista para o C15); inicialização do projeto
 React e integração HTTP; compra, venda, históricos, escalação, partidas e
