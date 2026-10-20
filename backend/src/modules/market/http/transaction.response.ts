@@ -1,5 +1,6 @@
 import { formatBrasiliaDateTime } from '../../../shared/http/brasilia-date-time';
 import { PurchaseResult } from '../application/buy-player.use-case';
+import { ClubTransactionHistory } from '../application/list-club-transactions.use-case';
 import { SaleResult } from '../application/sell-player.use-case';
 import { Transaction } from '../domain/transaction';
 
@@ -31,6 +32,17 @@ export interface SaleResponse extends TransactionResponse {
   club_cash: number;
 }
 
+export interface TransactionHistoryResponse {
+  data: TransactionResponse[];
+  summary: {
+    total_spent: number;
+    total_received: number;
+    total_fees: number;
+    total_penalties: number;
+    total_profit: number;
+  };
+}
+
 export function toTransactionResponse(transaction: Transaction): TransactionResponse {
   return {
     id: transaction.id,
@@ -57,6 +69,20 @@ export function toPurchaseResponse({ transaction, contract, clubCash }: Purchase
       status: contract.status,
     },
     club_cash: clubCash,
+  };
+}
+
+/** Formato de `GET /clubs/{id}/transactions` (2.3.3). */
+export function toTransactionHistoryResponse({ data, summary }: ClubTransactionHistory): TransactionHistoryResponse {
+  return {
+    data: data.map(toTransactionResponse),
+    summary: {
+      total_spent: summary.totalSpent,
+      total_received: summary.totalReceived,
+      total_fees: summary.totalFees,
+      total_penalties: summary.totalPenalties,
+      total_profit: summary.totalProfit,
+    },
   };
 }
 

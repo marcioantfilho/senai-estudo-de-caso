@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { Transaction as TransactionRow } from '@prisma/client';
 import { TransactionClient, TransactionRunner } from '../../../infrastructure/database/transaction-runner';
 import { Club } from '../../clubs/domain/club';
 import { toClub } from '../../clubs/infrastructure/club-row.mapper';
@@ -15,6 +14,7 @@ import {
 } from '../application/market.repository';
 import { ContractStatus } from '../domain/contract-status';
 import { Transaction, TransactionRecord, TransactionType } from '../domain/transaction';
+import { toTransaction } from './transaction-row.mapper';
 
 const SALE_TYPE: TransactionType = 'VENDA';
 const ACTIVE_STATUS: ContractStatus = 'ATIVO';
@@ -99,20 +99,4 @@ class PrismaMarketSession implements MarketSession {
     });
     return toTransaction(row);
   }
-}
-
-function toTransaction(row: TransactionRow): Transaction {
-  return {
-    id: row.id,
-    clubId: row.clubId,
-    playerId: row.playerId,
-    playerName: row.playerName,
-    type: row.type as TransactionType,
-    value: row.value.toNumber(),
-    fee: row.fee.toNumber(),
-    penalty: row.penalty.toNumber(),
-    profit: row.profit?.toNumber() ?? null,
-    cashChange: row.cashChange.toNumber(),
-    createdAt: row.createdAt,
-  };
 }

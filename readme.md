@@ -233,8 +233,8 @@ utilize `npm.cmd` nos comandos npm.
 **Prefixo HTTP:** `/api/v1`. Rotas disponíveis: `GET /players`, `POST /players`,
 `GET /players/{id}`, `PUT /players/{id}`, `PATCH /players/{id}/condition` e
 `DELETE /players/{id}`, `POST /players/{id}/buy`, `POST /players/{id}/sell`,
-`GET /clubs`, `POST /clubs` e
-`GET /clubs/{id}`; as demais respondem 404. O bootstrap configura CORS restrito e os sinais
+`GET /clubs`, `POST /clubs`, `GET /clubs/{id}` e `GET /clubs/{id}/transactions`;
+as demais respondem 404. O bootstrap configura CORS restrito e os sinais
 de encerramento do NestJS. Porta ou origem inválidas impedem a inicialização,
 com uma mensagem de configuração.
 
@@ -256,7 +256,8 @@ Premissas, a busca sem acentos e a paginação (RN07), o formato do nome e da
 sigla do clube, o caixa inicial, o patrimônio e a ordem dos clubes e do elenco
 (RN10 e RN11), a taxa e o limite de 50% do caixa (RN13), o fim da fidelidade,
 os dias restantes, o percentual e o valor da multa (RN15) e o lucro, a comissão
-e o crédito da venda (RN16), com as tabelas de exemplo do enunciado. Os testes ficam em `backend/test/`.
+e o crédito da venda (RN16) e o histórico de transações e seu resumo (RN17), com
+as tabelas de exemplo do enunciado. Os testes ficam em `backend/test/`.
 
 ### Frontend
 
@@ -411,6 +412,15 @@ Atualizarei os requisitos conforme vou avançando e realizando-as.
 - A saída do titular fica na Liga (`league/infrastructure/lineup-slots.ts`) e
   recebe a transação em andamento; ela apaga só a linha do jogador em
   `escalacoes`, mantém a formação do clube e não escala ninguém no lugar.
+- Histórico (`GET /clubs/{id}/transactions`): devolve as transações como foram
+  gravadas, sem consultar o nome ou o valor atuais do jogador, da mais recente
+  para a mais antiga e, no mesmo instante, maior id primeiro. Não há paginação;
+  `page` e `limit` são parâmetros fora da tabela e são ignorados.
+- O `summary` é calculado sobre as transações já filtradas por `type` e
+  `player_id`, com somas exatas em centavos (`market/domain/transaction-summary.ts`).
+- Ordem das recusas do histórico: filtro inválido (`400`), clube inexistente
+  (`404`) e jogador do filtro inexistente ou excluído (`404`). Sem o filtro, as
+  transações do jogador excluído continuam no histórico, com o nome do momento.
 
 ## Funcionalidades não implementadas
 
@@ -421,9 +431,10 @@ RN09, com V1–V9 nesses endpoints); criação, listagem e consulta de clubes
 domínio da compra e da venda (RN13, RN15 e RN16); compra de jogadores
 (`POST /players/{id}/buy`, RN12 a RN14), com a transação `COMPRA` (RN17); venda
 de jogadores (`POST /players/{id}/sell`, RN15 e RN16), com a transação `VENDA` e
-a saída do titular vendido da escalação (RN19).
+a saída do titular vendido da escalação (RN19); consulta do histórico de
+transações com resumo (`GET /clubs/{id}/transactions`, RN17).
 
-Pendentes: consulta e exportação do histórico (RN17 e RN18); escalação,
+Pendentes: exportação do histórico em CSV (RN18); escalação,
 partidas e classificação (RN19 a RN21); a saída da escalação do titular que
 passa a `DOENTE`, na mesma transação da alteração de condição (RN19, prevista
 para o C15); inicialização do projeto React e integração HTTP. A arquitetura descrita
