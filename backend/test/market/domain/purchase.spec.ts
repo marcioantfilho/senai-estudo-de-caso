@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { canAffordPurchase, quotePurchase } from '../../../src/modules/market/domain/purchase';
+import { canAffordPurchase, hasSquadRoom, quotePurchase } from '../../../src/modules/market/domain/purchase';
 
 describe('quotePurchase e canAffordPurchase (RN13)', () => {
   it.each([
@@ -25,5 +25,15 @@ describe('quotePurchase e canAffordPurchase (RN13)', () => {
 
   it('meio da taxa para longe do zero: 30,10 × 5% = 1,505 → 1,51', () => {
     expect(quotePurchase(30.1).fee).toBe(1.51);
+  });
+});
+
+describe('hasSquadRoom (RN14)', () => {
+  it.each([
+    [0, true],
+    [11, true],
+    [12, false],
+  ])('elenco com %s → cabe mais um: %s', (squadSize, expected) => {
+    expect(hasSquadRoom(squadSize)).toBe(expected);
   });
 });

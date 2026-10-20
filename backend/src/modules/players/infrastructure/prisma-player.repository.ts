@@ -1,10 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { Player as PlayerRow } from '@prisma/client';
 import { PrismaService } from '../../../infrastructure/database/prisma.service';
 import { PlayerFilter, PlayerRepository } from '../application/player.repository';
 import { PhysicalCondition } from '../domain/physical-condition';
 import { NewPlayer, Player, PlayerProfile } from '../domain/player';
-import { Position } from '../domain/position';
+import { toPlayer } from './player-row.mapper';
 
 @Injectable()
 export class PrismaPlayerRepository extends PlayerRepository {
@@ -60,26 +59,4 @@ function clubPresenceFilter(free: boolean | undefined): null | { not: null } | u
     return undefined;
   }
   return free ? null : { not: null };
-}
-
-function toPlayer(row: PlayerRow): Player {
-  return {
-    id: row.id,
-    name: row.name,
-    position: row.position as Position,
-    agility: row.agility,
-    age: row.age,
-    baseValue: row.baseValue.toNumber(),
-    condition: row.condition as PhysicalCondition,
-    clubId: row.clubId,
-    attributes: {
-      pace: row.pace,
-      shooting: row.shooting,
-      passing: row.passing,
-      dribbling: row.dribbling,
-      defending: row.defending,
-      physical: row.physical,
-    },
-    potential: row.potential,
-  };
 }

@@ -232,8 +232,8 @@ utilize `npm.cmd` nos comandos npm.
 **Origem configurada da API:** `http://localhost:3000`, sem o prefixo.
 **Prefixo HTTP:** `/api/v1`. Rotas disponíveis: `GET /players`, `POST /players`,
 `GET /players/{id}`, `PUT /players/{id}`, `PATCH /players/{id}/condition` e
-`DELETE /players/{id}`, `GET /clubs`, `POST /clubs` e `GET /clubs/{id}`; as
-demais respondem 404. O bootstrap configura CORS restrito e os sinais
+`DELETE /players/{id}`, `POST /players/{id}/buy`, `GET /clubs`, `POST /clubs` e
+`GET /clubs/{id}`; as demais respondem 404. O bootstrap configura CORS restrito e os sinais
 de encerramento do NestJS. Porta ou origem inválidas impedem a inicialização,
 com uma mensagem de configuração.
 
@@ -380,6 +380,24 @@ Atualizarei os requisitos conforme vou avançando e realizando-as.
 - O contrato vendido passa a `RESCINDIDO` quando a multa é maior que zero e a
   `ENCERRADO` quando é zero; como o valor de mercado tem piso de 1,00, toda
   fidelidade não cumprida gera multa de pelo menos 0,05.
+- Compra (`POST /players/{id}/buy`): numa única transação do banco, trava o
+  jogador e depois o clube (`SELECT ... FOR UPDATE`, sempre nessa ordem), confere
+  as regras e grava caixa, vínculo, contrato `ATIVO` e transação `COMPRA`. Com as
+  linhas travadas, compras simultâneas do mesmo jogador ou para o mesmo clube
+  são atendidas uma por vez e não passam dos limites de elenco e de caixa.
+- Ordem das conferências da compra: corpo (`400`), fim da fidelidade em relação
+  ao instante da compra (`400`), jogador inexistente ou excluído (`404`), clube
+  inexistente (`404`) e, por fim, as regras de negócio (`409`): jogador com
+  clube, recompra pelo clube que o vendeu, elenco com 12 e custo acima de 50% do
+  caixa.
+- O instante da compra é lido uma vez e usado na conferência da fidelidade, em
+  `created_at` da transação e no início do contrato (`iniciado_em`).
+- A recompra é identificada por uma transação `VENDA` do mesmo clube e jogador
+  no histórico.
+- O Mercado lê e grava jogadores e clubes pela sua própria sessão de transação
+  (`market/infrastructure/prisma-market.repository.ts`), usando os conversores
+  de linha de Jogadores e Clubes (`player-row.mapper.ts` e `club-row.mapper.ts`),
+  sem duplicá-los.
 
 ## Funcionalidades não implementadas
 
@@ -387,7 +405,8 @@ Implementados: cálculos da RN02–RN06 e os endpoints de listagem, cadastro,
 consulta, edição, alteração de condição e exclusão lógica de jogadores (RN06 a
 RN09, com V1–V9 nesses endpoints); criação, listagem e consulta de clubes
 (RN10 e RN11), com os dias restantes e o percentual de multa da RN15; regras de
-domínio da compra e da venda (RN13, RN15 e RN16), ainda sem os endpoints.
+domínio da compra e da venda (RN13, RN15 e RN16); compra de jogadores
+(`POST /players/{id}/buy`, RN12 a RN14), com a transação `COMPRA` (RN17).
 
 Pendentes: RN01 e RN12–RN21 com seus fluxos, exceto o que já consta acima;
 a saída da escalação do titular que passa a `DOENTE`, na mesma transação da

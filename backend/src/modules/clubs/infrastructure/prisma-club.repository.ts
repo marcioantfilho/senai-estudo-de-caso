@@ -1,8 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { Club as ClubRow, Prisma } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../../infrastructure/database/prisma.service';
 import { ClubCreationResult, ClubRepository } from '../application/club.repository';
 import { Club, NewClub } from '../domain/club';
+import { toClub } from './club-row.mapper';
 
 const UNIQUE_VIOLATION = 'P2002';
 
@@ -55,8 +56,4 @@ export class PrismaClubRepository extends ClubRepository {
       throw error;
     }
   }
-}
-
-function toClub(row: ClubRow): Club {
-  return { id: row.id, name: row.name, acronym: row.acronym, cash: row.cash.toNumber() };
 }

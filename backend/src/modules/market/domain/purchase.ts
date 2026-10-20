@@ -4,6 +4,9 @@ import { isAtMostHalfOf, percentageOf, sumMoney } from '../../../shared/domain/m
 const FEE_THRESHOLD = 30;
 const FEE_PERCENT = 5;
 
+/** RN14 */
+const MAX_SQUAD_SIZE = 12;
+
 export interface PurchaseQuote {
   value: number;
   fee: number;
@@ -19,4 +22,9 @@ export function quotePurchase(marketValue: number): PurchaseQuote {
 /** RN13: o custo total não passa da metade exata do caixa antes da compra; igual é aceito. */
 export function canAffordPurchase(totalCost: number, cashBefore: number): boolean {
   return isAtMostHalfOf(totalCost, cashBefore);
+}
+
+/** RN14: no máximo 12 jogadores por clube. */
+export function hasSquadRoom(squadSize: number): boolean {
+  return squadSize < MAX_SQUAD_SIZE;
 }

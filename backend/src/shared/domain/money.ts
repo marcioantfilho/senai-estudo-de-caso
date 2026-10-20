@@ -18,6 +18,11 @@ export interface PercentageShare {
   percent: number;
 }
 
+/** Valor com 2 casas e vírgula decimal; negativo com `-`. */
+export function formatMoney(amount: number): string {
+  return fromCents(toCents(amount)).toFixed(2).replace('.', ',');
+}
+
 /** Soma exata de valores em moedas já arredondados. */
 export function sumMoney(amounts: readonly number[]): number {
   return fromCents(amounts.reduce((total, amount) => total + toCents(amount), 0));

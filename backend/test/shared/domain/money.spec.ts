@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  formatMoney,
   isAtMostHalfOf,
   percentageOf,
   subtractMoney,
@@ -61,5 +62,17 @@ describe('isAtMostHalfOf', () => {
     [0, 0, true],
   ])('%s ≤ metade de %s → %s', (amount, total, expected) => {
     expect(isAtMostHalfOf(amount, total)).toBe(expected);
+  });
+});
+
+describe('formatMoney', () => {
+  it.each([
+    [40, '40,00'],
+    [0.3, '0,30'],
+    [-38.85, '-38,85'],
+    [130.58, '130,58'],
+    [0, '0,00'],
+  ])('%s → %s', (amount, expected) => {
+    expect(formatMoney(amount)).toBe(expected);
   });
 });
