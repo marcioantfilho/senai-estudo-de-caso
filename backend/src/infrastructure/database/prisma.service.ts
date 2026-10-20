@@ -2,12 +2,15 @@ import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/commo
 import { PrismaClient } from '@prisma/client';
 import { loadDatabaseUrl } from '../../config/database.config';
 
+/** Espera por uma conexão e duração de cada transação, abaixo dos 10 s por requisição. */
+const TRANSACTION_OPTIONS = { maxWait: 5_000, timeout: 8_000 };
+
 @Injectable()
 export class PrismaService extends PrismaClient implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(PrismaService.name);
 
   constructor() {
-    super({ datasourceUrl: loadDatabaseUrl() });
+    super({ datasourceUrl: loadDatabaseUrl(), transactionOptions: TRANSACTION_OPTIONS });
   }
 
   async onModuleInit(): Promise<void> {

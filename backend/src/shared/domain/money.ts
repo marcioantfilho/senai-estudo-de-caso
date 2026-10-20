@@ -13,6 +13,11 @@ export function fromCents(cents: number): number {
   return cents / CENTS_PER_UNIT;
 }
 
+/** Soma exata de valores em moedas já arredondados. */
+export function sumMoney(amounts: readonly number[]): number {
+  return fromCents(amounts.reduce((total, amount) => total + toCents(amount), 0));
+}
+
 /**
  * Valor × percentual ÷ 100, com o percentual em até 2 casas, arredondado uma
  * única vez para 2 casas, com o meio para longe do zero.

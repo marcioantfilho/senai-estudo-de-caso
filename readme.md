@@ -232,7 +232,7 @@ utilize `npm.cmd` nos comandos npm.
 **Origem configurada da API:** `http://localhost:3000`, sem o prefixo.
 **Prefixo HTTP:** `/api/v1`. Rotas disponíveis: `GET /players`, `POST /players`,
 `GET /players/{id}`, `PUT /players/{id}`, `PATCH /players/{id}/condition` e
-`DELETE /players/{id}`; as demais respondem 404. O bootstrap configura CORS restrito e os sinais
+`DELETE /players/{id}` e `POST /clubs`; as demais respondem 404. O bootstrap configura CORS restrito e os sinais
 de encerramento do NestJS. Porta ou origem inválidas impedem a inicialização,
 com uma mensagem de configuração.
 
@@ -250,8 +250,9 @@ npm test
 
 O comando termina sozinho e cobre o valor de mercado (RN02–RN05), o overall e
 o valor base (RN06), o arredondamento de moedas, a ordem alfabética das
-Premissas, a busca sem acentos e a paginação (RN07), com as tabelas de exemplo
-do enunciado. Os testes ficam em `backend/test/`.
+Premissas, a busca sem acentos e a paginação (RN07), o formato do nome e da
+sigla do clube, o caixa inicial e o patrimônio (RN10 e RN11), com as tabelas de
+exemplo do enunciado. Os testes ficam em `backend/test/`.
 
 ### Frontend
 
@@ -332,14 +333,34 @@ Atualizarei os requisitos conforme vou avançando e realizando-as.
   como o parâmetro vazio.
 - A existência do clube do filtro `club_id` é conferida pelo `ClubRepository`
   do módulo Clubes, exportado para Jogadores.
+- Clubes: a conferência do nome repetido usa a mesma comparação do índice único
+  do banco, `lower(nome)`, para que a API e o banco nunca divirjam. O banco
+  criado pelo `compose.yaml` usa o locale `en_US.utf8`, em que o `lower()` trata
+  letras acentuadas ("ÁGUIAS FC" colide com "águias fc").
+- A sigla é lida exatamente como enviada, sem a normalização de espaços da V4,
+  que vale só para nomes e para o `search`: `" AGU"` é recusada com `400`.
+- Como a sigla tem 3 letras do nome e o nome tem pelo menos 2 palavras, um nome
+  de 3 caracteres nunca tem sigla válida e é sempre recusado com `400`.
+- O limite de 20 clubes é conferido e o clube é gravado numa única transação,
+  com a tabela `clubes` travada contra inserções simultâneas (`LOCK TABLE ... IN
+  SHARE ROW EXCLUSIVE MODE`); assim, pedidos simultâneos não passam do limite.
+  Nome ou sigla gravados por outro pedido entre a conferência e a gravação são
+  recusados com `409` pela unicidade do banco.
+- Toda transação interativa do Prisma espera até 5 s por uma conexão e dura até
+  8 s (`src/infrastructure/database/prisma.service.ts`), abaixo do limite de 10 s
+  por requisição; o padrão do Prisma (2 s de espera) gerava `500` em pedidos
+  simultâneos.
+- `POST /clubs` devolve `squad_value` e `net_worth` calculados pela mesma função
+  da RN11 (`summarizeClub`), com o elenco vazio do clube recém-criado.
 
 ## Funcionalidades não implementadas
 
 Implementados: cálculos da RN02–RN06 e os endpoints de listagem, cadastro,
 consulta, edição, alteração de condição e exclusão lógica de jogadores (RN06 a
-RN09, com V1–V9 nesses endpoints).
+RN09, com V1–V9 nesses endpoints); criação de clubes (`POST /clubs`, RN10).
 
-Pendentes: RN01, RN10–RN21 com seus fluxos;
+Pendentes: `GET /clubs` e `GET /clubs/{id}` (RN11), RN01 e RN12–RN21 com seus
+fluxos;
 a saída da escalação do titular que passa a `DOENTE`, na mesma transação da
 alteração de condição (RN19, prevista para o C15); inicialização do projeto
 React e integração HTTP; compra, venda, históricos, escalação, partidas e

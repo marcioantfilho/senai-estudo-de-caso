@@ -29,6 +29,15 @@ export function readText(body: JsonObject, field: string, length: Range): string
   return text;
 }
 
+/** Texto lido como enviado, sem a normalização da V4, que vale só para nomes. */
+export function readString(body: JsonObject, field: string): string {
+  const value = readRequired(body, field);
+  if (typeof value !== 'string') {
+    return rejectInvalid(`O campo ${field} deve ser um texto.`);
+  }
+  return value;
+}
+
 /** V2: número JSON inteiro (`50.0` vale 50; `50.5` e `"50"` são recusados). */
 export function readInteger(body: JsonObject, field: string, range: Range): number {
   const value = readRequired(body, field);
