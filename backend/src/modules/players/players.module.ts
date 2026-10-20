@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { ClubsModule } from '../clubs/clubs.module';
+import { ClubPersistenceModule } from '../clubs/infrastructure/club-persistence.module';
 import { ChangePlayerConditionUseCase } from './application/change-player-condition.use-case';
 import { DeletePlayerUseCase } from './application/delete-player.use-case';
 import { GetPlayerUseCase } from './application/get-player.use-case';
@@ -11,7 +11,7 @@ import { PlayersController } from './http/players.controller';
 import { PrismaPlayerRepository } from './infrastructure/prisma-player.repository';
 
 @Module({
-  imports: [ClubsModule],
+  imports: [ClubPersistenceModule],
   controllers: [PlayersController],
   providers: [
     { provide: PlayerRepository, useClass: PrismaPlayerRepository },
@@ -22,5 +22,6 @@ import { PrismaPlayerRepository } from './infrastructure/prisma-player.repositor
     ChangePlayerConditionUseCase,
     DeletePlayerUseCase,
   ],
+  exports: [PlayerRepository],
 })
 export class PlayersModule {}

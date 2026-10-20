@@ -9,6 +9,10 @@ export type ClubCreationResult =
 export abstract class ClubRepository {
   abstract exists(id: number): Promise<boolean>;
 
+  abstract findById(id: number): Promise<Club | null>;
+
+  abstract findAll(): Promise<Club[]>;
+
   /** RN10: mesma comparação do índice único do banco (maiúsculas e minúsculas iguais, acentos diferentes). */
   abstract isNameTaken(name: string): Promise<boolean>;
 

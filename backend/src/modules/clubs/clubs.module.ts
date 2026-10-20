@@ -1,12 +1,15 @@
 import { Module } from '@nestjs/common';
-import { ClubRepository } from './application/club.repository';
+import { MarketModule } from '../market/market.module';
+import { PlayersModule } from '../players/players.module';
 import { CreateClubUseCase } from './application/create-club.use-case';
+import { GetClubUseCase } from './application/get-club.use-case';
+import { ListClubsUseCase } from './application/list-clubs.use-case';
 import { ClubsController } from './http/clubs.controller';
-import { PrismaClubRepository } from './infrastructure/prisma-club.repository';
+import { ClubPersistenceModule } from './infrastructure/club-persistence.module';
 
 @Module({
+  imports: [ClubPersistenceModule, PlayersModule, MarketModule],
   controllers: [ClubsController],
-  providers: [{ provide: ClubRepository, useClass: PrismaClubRepository }, CreateClubUseCase],
-  exports: [ClubRepository],
+  providers: [CreateClubUseCase, ListClubsUseCase, GetClubUseCase],
 })
 export class ClubsModule {}

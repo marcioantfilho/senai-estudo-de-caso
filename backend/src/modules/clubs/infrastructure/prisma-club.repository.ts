@@ -16,6 +16,15 @@ export class PrismaClubRepository extends ClubRepository {
     return (await this.prisma.club.count({ where: { id } })) > 0;
   }
 
+  async findById(id: number): Promise<Club | null> {
+    const row = await this.prisma.club.findUnique({ where: { id } });
+    return row === null ? null : toClub(row);
+  }
+
+  async findAll(): Promise<Club[]> {
+    return (await this.prisma.club.findMany()).map(toClub);
+  }
+
   async isNameTaken(name: string): Promise<boolean> {
     const [row] = await this.prisma.$queryRaw<{ taken: boolean }[]>`
       SELECT EXISTS (SELECT 1 FROM clubes WHERE lower(nome) = lower(${name})) AS taken`;

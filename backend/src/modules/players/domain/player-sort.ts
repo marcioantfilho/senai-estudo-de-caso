@@ -1,3 +1,4 @@
+import { chainComparators, Comparator } from '../../../shared/domain/comparison';
 import { compareAlphabetically } from '../../../shared/domain/text-comparison';
 import { PlayerDetails } from './player';
 import { POSITIONS } from './position';
@@ -9,7 +10,7 @@ export type PlayerSortOption = (typeof PLAYER_SORT_OPTIONS)[number];
 export const DEFAULT_PLAYER_SORT: readonly PlayerSortOption[] = ['name'];
 export const MAX_PLAYER_SORT_CRITERIA = 2;
 
-type PlayerComparator = (left: PlayerDetails, right: PlayerDetails) => number;
+type PlayerComparator = Comparator<PlayerDetails>;
 
 const byName: PlayerComparator = (left, right) => compareAlphabetically(left.name, right.name);
 const byId: PlayerComparator = (left, right) => left.id - right.id;
@@ -31,14 +32,5 @@ export function sortField(option: PlayerSortOption): string {
 
 /** RN07: os critérios na ordem pedida e, no empate, o nome e depois o id. */
 export function comparePlayers(criteria: readonly PlayerSortOption[]): PlayerComparator {
-  const comparators = [...criteria.map((option) => COMPARATORS[option]), byName, byId];
-  return (left, right) => {
-    for (const compare of comparators) {
-      const result = compare(left, right);
-      if (result !== 0) {
-        return result;
-      }
-    }
-    return 0;
-  };
+  return chainComparators([...criteria.map((option) => COMPARATORS[option]), byName, byId]);
 }
