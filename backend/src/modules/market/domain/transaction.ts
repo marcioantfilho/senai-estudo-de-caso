@@ -1,4 +1,5 @@
 import { PurchaseQuote } from './purchase';
+import { SaleSettlement } from './sale';
 
 export const TRANSACTION_TYPES = ['COMPRA', 'VENDA'] as const;
 
@@ -38,6 +39,20 @@ export function purchaseTransaction(party: TransactionParty, quote: PurchaseQuot
     penalty: 0,
     profit: null,
     cashChange: -quote.totalCost,
+    createdAt: at,
+  };
+}
+
+/** Venda: taxa é a comissão, e a variação do caixa é o crédito (valor − multa − comissão). */
+export function saleTransaction(party: TransactionParty, settlement: SaleSettlement, at: Date): TransactionRecord {
+  return {
+    ...party,
+    type: 'VENDA',
+    value: settlement.saleValue,
+    fee: settlement.commission,
+    penalty: settlement.penalty,
+    profit: settlement.profit,
+    cashChange: settlement.credit,
     createdAt: at,
   };
 }

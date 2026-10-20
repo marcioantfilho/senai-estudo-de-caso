@@ -3,12 +3,21 @@ import { Transaction as TransactionRow } from '@prisma/client';
 import { TransactionClient, TransactionRunner } from '../../../infrastructure/database/transaction-runner';
 import { Club } from '../../clubs/domain/club';
 import { toClub } from '../../clubs/infrastructure/club-row.mapper';
+import { removeStarter } from '../../league/infrastructure/lineup-slots';
 import { Player } from '../../players/domain/player';
 import { toPlayer } from '../../players/infrastructure/player-row.mapper';
-import { MarketRepository, MarketSession, PurchaseRecord } from '../application/market.repository';
-import { Transaction, TransactionType } from '../domain/transaction';
+import {
+  MarketRepository,
+  MarketSession,
+  PurchaseRecord,
+  SaleRecord,
+  StoredContract,
+} from '../application/market.repository';
+import { ContractStatus } from '../domain/contract-status';
+import { Transaction, TransactionRecord, TransactionType } from '../domain/transaction';
 
 const SALE_TYPE: TransactionType = 'VENDA';
+const ACTIVE_STATUS: ContractStatus = 'ATIVO';
 
 @Injectable()
 export class PrismaMarketRepository extends MarketRepository {
@@ -44,6 +53,22 @@ class PrismaMarketSession implements MarketSession {
     return (await this.client.transaction.count({ where: { clubId, playerId, type: SALE_TYPE } })) > 0;
   }
 
+  async findActiveContract(playerId: number): Promise<StoredContract | null> {
+    const row = await this.client.contract.findFirst({ where: { playerId, status: ACTIVE_STATUS } });
+    return row === null
+      ? null
+      : { id: row.id, purchaseValue: row.purchaseValue.toNumber(), loyaltyUntil: row.loyaltyUntil };
+  }
+
+  async recordSale({ transaction, contractId, contractStatus, clubCash }: SaleRecord): Promise<Transaction> {
+    const { clubId, playerId, createdAt } = transaction;
+    await this.client.club.update({ where: { id: clubId }, data: { cash: clubCash.toFixed(2) } });
+    await this.client.player.update({ where: { id: playerId }, data: { clubId: null } });
+    await this.client.contract.update({ where: { id: contractId }, data: { status: contractStatus, endedAt: createdAt } });
+    await removeStarter(this.client, playerId);
+    return this.createTransaction(transaction);
+  }
+
   async recordPurchase({ transaction, contract, clubCash }: PurchaseRecord): Promise<Transaction> {
     const { clubId, playerId, createdAt } = transaction;
     await this.client.club.update({ where: { id: clubId }, data: { cash: clubCash.toFixed(2) } });
@@ -58,6 +83,10 @@ class PrismaMarketSession implements MarketSession {
         startedAt: createdAt,
       },
     });
+    return this.createTransaction(transaction);
+  }
+
+  private async createTransaction(transaction: TransactionRecord): Promise<Transaction> {
     const row = await this.client.transaction.create({
       data: {
         ...transaction,

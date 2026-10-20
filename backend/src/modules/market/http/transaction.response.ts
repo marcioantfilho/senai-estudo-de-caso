@@ -1,5 +1,6 @@
 import { formatBrasiliaDateTime } from '../../../shared/http/brasilia-date-time';
 import { PurchaseResult } from '../application/buy-player.use-case';
+import { SaleResult } from '../application/sell-player.use-case';
 import { Transaction } from '../domain/transaction';
 
 /** Campos da transação (RN17), em snake_case. */
@@ -19,6 +20,14 @@ export interface TransactionResponse {
 
 export interface PurchaseResponse extends TransactionResponse {
   contract: { purchase_value: number; loyalty_until: string; status: string };
+  club_cash: number;
+}
+
+export interface SaleResponse extends TransactionResponse {
+  purchase_value: number;
+  remaining_days: number;
+  penalty_rate: number;
+  contract_status: string;
   club_cash: number;
 }
 
@@ -47,6 +56,18 @@ export function toPurchaseResponse({ transaction, contract, clubCash }: Purchase
       loyalty_until: formatBrasiliaDateTime(contract.loyaltyUntil),
       status: contract.status,
     },
+    club_cash: clubCash,
+  };
+}
+
+/** Formato de `POST /players/{id}/sell` (2.3.2); o crédito no caixa é o `cash_change`. */
+export function toSaleResponse({ transaction, settlement, clubCash }: SaleResult): SaleResponse {
+  return {
+    ...toTransactionResponse(transaction),
+    purchase_value: settlement.purchaseValue,
+    remaining_days: settlement.remainingDays,
+    penalty_rate: settlement.penaltyRate,
+    contract_status: settlement.contractStatus,
     club_cash: clubCash,
   };
 }

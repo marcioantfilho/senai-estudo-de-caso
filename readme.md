@@ -232,7 +232,8 @@ utilize `npm.cmd` nos comandos npm.
 **Origem configurada da API:** `http://localhost:3000`, sem o prefixo.
 **Prefixo HTTP:** `/api/v1`. Rotas disponíveis: `GET /players`, `POST /players`,
 `GET /players/{id}`, `PUT /players/{id}`, `PATCH /players/{id}/condition` e
-`DELETE /players/{id}`, `POST /players/{id}/buy`, `GET /clubs`, `POST /clubs` e
+`DELETE /players/{id}`, `POST /players/{id}/buy`, `POST /players/{id}/sell`,
+`GET /clubs`, `POST /clubs` e
 `GET /clubs/{id}`; as demais respondem 404. O bootstrap configura CORS restrito e os sinais
 de encerramento do NestJS. Porta ou origem inválidas impedem a inicialização,
 com uma mensagem de configuração.
@@ -398,6 +399,18 @@ Atualizarei os requisitos conforme vou avançando e realizando-as.
   (`market/infrastructure/prisma-market.repository.ts`), usando os conversores
   de linha de Jogadores e Clubes (`player-row.mapper.ts` e `club-row.mapper.ts`),
   sem duplicá-los.
+- Venda (`POST /players/{id}/sell`): sem corpo; um corpo enviado, mesmo inválido,
+  é ignorado (V1). Numa única transação, trava o jogador e depois o clube atual
+  dele, calcula a venda com `settleSale` (multa, lucro, comissão e crédito) e
+  grava o crédito no caixa, o jogador livre, o contrato `ENCERRADO` ou
+  `RESCINDIDO` com `encerrado_em`, a transação `VENDA` e a saída do titular da
+  escalação. Ordem das recusas: jogador inexistente ou excluído (`404`) e
+  jogador livre (`409`).
+- Na resposta da venda, o crédito no caixa é o `cash_change`, e `fee` é a
+  comissão, como na transação `VENDA` (RN17); não há campo `credit`.
+- A saída do titular fica na Liga (`league/infrastructure/lineup-slots.ts`) e
+  recebe a transação em andamento; ela apaga só a linha do jogador em
+  `escalacoes`, mantém a formação do clube e não escala ninguém no lugar.
 
 ## Funcionalidades não implementadas
 
@@ -406,13 +419,14 @@ consulta, edição, alteração de condição e exclusão lógica de jogadores (
 RN09, com V1–V9 nesses endpoints); criação, listagem e consulta de clubes
 (RN10 e RN11), com os dias restantes e o percentual de multa da RN15; regras de
 domínio da compra e da venda (RN13, RN15 e RN16); compra de jogadores
-(`POST /players/{id}/buy`, RN12 a RN14), com a transação `COMPRA` (RN17).
+(`POST /players/{id}/buy`, RN12 a RN14), com a transação `COMPRA` (RN17); venda
+de jogadores (`POST /players/{id}/sell`, RN15 e RN16), com a transação `VENDA` e
+a saída do titular vendido da escalação (RN19).
 
-Pendentes: RN01 e RN12–RN21 com seus fluxos, exceto o que já consta acima;
-a saída da escalação do titular que passa a `DOENTE`, na mesma transação da
-alteração de condição (RN19, prevista para o C15); inicialização do projeto
-React e integração HTTP; compra, venda, históricos, escalação, partidas e
-classificação. A arquitetura descrita
+Pendentes: consulta e exportação do histórico (RN17 e RN18); escalação,
+partidas e classificação (RN19 a RN21); a saída da escalação do titular que
+passa a `DOENTE`, na mesma transação da alteração de condição (RN19, prevista
+para o C15); inicialização do projeto React e integração HTTP. A arquitetura descrita
 é uma proposta de organização para a implementação já aprovada por mim.
 
 ## Uso de inteligência artificial
