@@ -233,7 +233,8 @@ utilize `npm.cmd` nos comandos npm.
 **Prefixo HTTP:** `/api/v1`. Rotas disponíveis: `GET /players`, `POST /players`,
 `GET /players/{id}`, `PUT /players/{id}`, `PATCH /players/{id}/condition` e
 `DELETE /players/{id}`, `POST /players/{id}/buy`, `POST /players/{id}/sell`,
-`GET /clubs`, `POST /clubs`, `GET /clubs/{id}` e `GET /clubs/{id}/transactions`;
+`GET /clubs`, `POST /clubs`, `GET /clubs/{id}`, `GET /clubs/{id}/transactions` e
+`GET /clubs/{id}/transactions/export`;
 as demais respondem 404. O bootstrap configura CORS restrito e os sinais
 de encerramento do NestJS. Porta ou origem inválidas impedem a inicialização,
 com uma mensagem de configuração.
@@ -256,7 +257,8 @@ Premissas, a busca sem acentos e a paginação (RN07), o formato do nome e da
 sigla do clube, o caixa inicial, o patrimônio e a ordem dos clubes e do elenco
 (RN10 e RN11), a taxa e o limite de 50% do caixa (RN13), o fim da fidelidade,
 os dias restantes, o percentual e o valor da multa (RN15) e o lucro, a comissão
-e o crédito da venda (RN16) e o histórico de transações e seu resumo (RN17), com
+e o crédito da venda (RN16), o histórico de transações e seu resumo (RN17) e o
+arquivo CSV da exportação (RN18), com
 as tabelas de exemplo do enunciado. Os testes ficam em `backend/test/`.
 
 ### Frontend
@@ -421,6 +423,17 @@ Atualizarei os requisitos conforme vou avançando e realizando-as.
 - Ordem das recusas do histórico: filtro inválido (`400`), clube inexistente
   (`404`) e jogador do filtro inexistente ou excluído (`404`). Sem o filtro, as
   transações do jogador excluído continuam no histórico, com o nome do momento.
+- Exportação (`GET /clubs/{id}/transactions/export`): usa a mesma consulta do
+  histórico, com os mesmos filtros, validações, recusas e ordem, e monta o
+  arquivo em `market/http/transactions-csv.ts`. Responde
+  `Content-Type: text/csv; charset=utf-8`, em UTF-8 sem BOM, com cada linha
+  terminada em LF, inclusive a última, e sem `Content-Disposition` (opcional na
+  RN18).
+- O tipo `text/csv` é definido só depois que a consulta deu certo; assim as
+  recusas `400` e `404` continuam em JSON, com `message`.
+- No CSV, o nome é o gravado na transação; nomes com `;` ou aspas vão entre aspas
+  duplas, com cada aspa interna duplicada. Os outros campos (data, tipo e
+  valores) nunca contêm `;` nem aspas e não recebem aspas.
 
 ## Funcionalidades não implementadas
 
@@ -432,9 +445,10 @@ domínio da compra e da venda (RN13, RN15 e RN16); compra de jogadores
 (`POST /players/{id}/buy`, RN12 a RN14), com a transação `COMPRA` (RN17); venda
 de jogadores (`POST /players/{id}/sell`, RN15 e RN16), com a transação `VENDA` e
 a saída do titular vendido da escalação (RN19); consulta do histórico de
-transações com resumo (`GET /clubs/{id}/transactions`, RN17).
+transações com resumo (`GET /clubs/{id}/transactions`, RN17) e exportação em CSV
+(`GET /clubs/{id}/transactions/export`, RN18).
 
-Pendentes: exportação do histórico em CSV (RN18); escalação,
+Pendentes: escalação,
 partidas e classificação (RN19 a RN21); a saída da escalação do titular que
 passa a `DOENTE`, na mesma transação da alteração de condição (RN19, prevista
 para o C15); inicialização do projeto React e integração HTTP. A arquitetura descrita
