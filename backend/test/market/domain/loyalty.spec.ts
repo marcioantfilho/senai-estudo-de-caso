@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { describeContract, penaltyRate, remainingLoyaltyDays } from '../../../src/modules/market/domain/loyalty';
+import {
+  contractStatusAfterSale,
+  describeContract,
+  isLoyaltyEndAllowed,
+  loyaltyPenalty,
+  penaltyRate,
+  remainingLoyaltyDays,
+} from '../../../src/modules/market/domain/loyalty';
 
 const MINUTE = 60_000;
 const HOUR = 60 * MINUTE;
@@ -27,6 +34,40 @@ describe('remainingLoyaltyDays e penaltyRate (RN15)', () => {
   it('exemplo da venda do Meia Lua: 116 dias, 17 horas e 35 minutos → 117', () => {
     const loyaltyUntil = new Date('2027-03-02T13:15:00.000Z');
     expect(remainingLoyaltyDays(loyaltyUntil, sale)).toBe(117);
+  });
+});
+
+describe('isLoyaltyEndAllowed', () => {
+  it.each([
+    ['no passado', -MINUTE, false],
+    ['no próprio instante da compra', 0, false],
+    ['1 minuto depois', MINUTE, true],
+    ['exatamente 1.095 dias depois', 1_095 * DAY, true],
+    ['1.095 dias e 1 milissegundo depois', 1_095 * DAY + 1, false],
+    ['1.096 dias depois', 1_096 * DAY, false],
+  ])('%s → %s', (_label, offset, allowed) => {
+    expect(isLoyaltyEndAllowed(after(offset), sale)).toBe(allowed);
+  });
+});
+
+describe('loyaltyPenalty e contractStatusAfterSale (RN15)', () => {
+  it.each([
+    [40, 10, 4],
+    [42.5, 20, 8.5],
+    [30, 5, 1.5],
+    [75, 20, 10],
+    [50.01, 20, 10],
+    [49.99, 20, 10],
+    [49.97, 20, 9.99],
+    [25, 0, 0],
+    [8.7, 5, 0.44],
+  ])('mercado %s × %s%% → %s', (marketValue, rate, penalty) => {
+    expect(loyaltyPenalty(marketValue, rate)).toBe(penalty);
+  });
+
+  it('com multa, RESCINDIDO; sem multa, ENCERRADO', () => {
+    expect(contractStatusAfterSale(4)).toBe('RESCINDIDO');
+    expect(contractStatusAfterSale(0)).toBe('ENCERRADO');
   });
 });
 

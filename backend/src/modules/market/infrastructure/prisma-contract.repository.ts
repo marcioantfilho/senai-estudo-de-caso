@@ -1,8 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../infrastructure/database/prisma.service';
 import { ActiveContract, ContractRepository } from '../application/contract.repository';
+import { ContractStatus } from '../domain/contract-status';
 
-const ACTIVE_STATUS = 'ATIVO';
+const ACTIVE_STATUS: ContractStatus = 'ATIVO';
 
 @Injectable()
 export class PrismaContractRepository extends ContractRepository {

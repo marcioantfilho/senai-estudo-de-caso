@@ -253,8 +253,9 @@ O comando termina sozinho e cobre o valor de mercado (RN02–RN05), o overall e
 o valor base (RN06), o arredondamento de moedas, a ordem alfabética das
 Premissas, a busca sem acentos e a paginação (RN07), o formato do nome e da
 sigla do clube, o caixa inicial, o patrimônio e a ordem dos clubes e do elenco
-(RN10 e RN11) e os dias restantes e o percentual de multa (RN15), com as tabelas
-de exemplo do enunciado. Os testes ficam em `backend/test/`.
+(RN10 e RN11), a taxa e o limite de 50% do caixa (RN13), o fim da fidelidade,
+os dias restantes, o percentual e o valor da multa (RN15) e o lucro, a comissão
+e o crédito da venda (RN16), com as tabelas de exemplo do enunciado. Os testes ficam em `backend/test/`.
 
 ### Frontend
 
@@ -364,13 +365,29 @@ Atualizarei os requisitos conforme vou avançando e realizando-as.
   restantes de todos os contratos do elenco.
 - Dias restantes são contados em períodos de 24 horas a partir do instante da
   consulta (o horário de Brasília não tem horário de verão).
+- Regras do Mercado em `src/modules/market/domain/`, uma implementação cada:
+  `purchase.ts` (taxa e limite de 50% do caixa, RN13), `loyalty.ts` (fim da
+  fidelidade, dias restantes, percentual e multa, RN15) e `sale.ts` (lucro,
+  comissão e crédito, RN16). A consulta do clube e a venda usam as mesmas
+  funções de dias restantes e percentual.
+- O limite de 50% do caixa compara em centavos o dobro do custo com o caixa
+  (`2 × custo ≤ caixa`), o que equivale à metade exata sem arredondá-la: com
+  caixa de 261,15, 130,57 é aceito e 130,58 é recusado.
+- O fim da fidelidade é aceito se for depois do instante da compra e no máximo
+  1.095 × 24 horas depois dele, inclusive.
+- A comissão soma 10% da parte do lucro até 10,00 e 20% da parte acima e
+  arredonda uma única vez, no final (`sumOfPercentages`, em `money.ts`).
+- O contrato vendido passa a `RESCINDIDO` quando a multa é maior que zero e a
+  `ENCERRADO` quando é zero; como o valor de mercado tem piso de 1,00, toda
+  fidelidade não cumprida gera multa de pelo menos 0,05.
 
 ## Funcionalidades não implementadas
 
 Implementados: cálculos da RN02–RN06 e os endpoints de listagem, cadastro,
 consulta, edição, alteração de condição e exclusão lógica de jogadores (RN06 a
 RN09, com V1–V9 nesses endpoints); criação, listagem e consulta de clubes
-(RN10 e RN11), com os dias restantes e o percentual de multa da RN15.
+(RN10 e RN11), com os dias restantes e o percentual de multa da RN15; regras de
+domínio da compra e da venda (RN13, RN15 e RN16), ainda sem os endpoints.
 
 Pendentes: RN01 e RN12–RN21 com seus fluxos, exceto o que já consta acima;
 a saída da escalação do titular que passa a `DOENTE`, na mesma transação da
