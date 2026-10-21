@@ -22,7 +22,8 @@ export abstract class PlayerRepository {
 
   abstract updateProfile(id: number, profile: PlayerProfile): Promise<Player>;
 
-  abstract updateCondition(id: number, condition: PhysicalCondition): Promise<Player>;
+  /** Com `leaveLineup`, o jogador sai da escalação na mesma transação (RN19). */
+  abstract updateCondition(id: number, condition: PhysicalCondition, leaveLineup: boolean): Promise<Player>;
 
   abstract markDeleted(id: number, deletedAt: Date): Promise<void>;
 }

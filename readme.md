@@ -234,7 +234,8 @@ utilize `npm.cmd` nos comandos npm.
 `GET /players/{id}`, `PUT /players/{id}`, `PATCH /players/{id}/condition` e
 `DELETE /players/{id}`, `POST /players/{id}/buy`, `POST /players/{id}/sell`,
 `GET /clubs`, `POST /clubs`, `GET /clubs/{id}`, `GET /clubs/{id}/transactions` e
-`GET /clubs/{id}/transactions/export`;
+`GET /clubs/{id}/transactions/export`, `PUT /clubs/{id}/lineup` e
+`GET /clubs/{id}/lineup`;
 as demais respondem 404. O bootstrap configura CORS restrito e os sinais
 de encerramento do NestJS. Porta ou origem inválidas impedem a inicialização,
 com uma mensagem de configuração.
@@ -258,7 +259,7 @@ sigla do clube, o caixa inicial, o patrimônio e a ordem dos clubes e do elenco
 (RN10 e RN11), a taxa e o limite de 50% do caixa (RN13), o fim da fidelidade,
 os dias restantes, o percentual e o valor da multa (RN15) e o lucro, a comissão
 e o crédito da venda (RN16), o histórico de transações e seu resumo (RN17) e o
-arquivo CSV da exportação (RN18), com
+arquivo CSV da exportação (RN18) e as formações e a escalação (RN19), com
 as tabelas de exemplo do enunciado. Os testes ficam em `backend/test/`.
 
 ### Frontend
@@ -434,6 +435,23 @@ Atualizarei os requisitos conforme vou avançando e realizando-as.
 - No CSV, o nome é o gravado na transação; nomes com `;` ou aspas vão entre aspas
   duplas, com cada aspa interna duplicada. Os outros campos (data, tipo e
   valores) nunca contêm `;` nem aspas e não recebem aspas.
+- Escalação (`PUT /clubs/{id}/lineup`): numa única transação, trava os 5
+  jogadores (em ordem de id) e depois o clube, a mesma ordem da compra e da
+  venda, confere as regras e substitui a formação e os 5 titulares por inteiro.
+  A resposta é a escalação gravada, lida na mesma transação, no formato do
+  `GET /clubs/{id}/lineup`. O caixa não muda.
+- Ordem das recusas da escalação: corpo (`400`: formação fora da lista,
+  `player_ids` que não é lista de 5 inteiros positivos distintos), clube
+  inexistente (`404`), jogador inexistente ou excluído (`404`) e, por fim, as
+  regras de negócio (`409`): jogador fora do elenco do clube (de outro clube ou
+  livre), jogador `DOENTE` e posições que não fecham a formação.
+- `complete` é `true` só com a formação salva e os 5 titulares. Sem escalação,
+  `formation` é `null`, `players` vem vazio e `complete` é `false`.
+- A regra de quem pode ser titular (`canBeStarter`, em `league/domain/lineup.ts`)
+  é usada na escalação e na alteração de condição. Na alteração para `DOENTE`, a
+  condição é gravada e o titular sai da escalação na mesma transação, pela mesma
+  operação usada na venda (`removeStarter`); a formação continua a salva e o
+  jogador não volta sozinho quando deixa de estar `DOENTE`.
 
 ## Funcionalidades não implementadas
 
@@ -446,12 +464,12 @@ domínio da compra e da venda (RN13, RN15 e RN16); compra de jogadores
 de jogadores (`POST /players/{id}/sell`, RN15 e RN16), com a transação `VENDA` e
 a saída do titular vendido da escalação (RN19); consulta do histórico de
 transações com resumo (`GET /clubs/{id}/transactions`, RN17) e exportação em CSV
-(`GET /clubs/{id}/transactions/export`, RN18).
+(`GET /clubs/{id}/transactions/export`, RN18); escalação (`PUT` e
+`GET /clubs/{id}/lineup`, RN19), com a saída do titular vendido ou que passa a
+`DOENTE` na mesma transação da operação.
 
-Pendentes: escalação,
-partidas e classificação (RN19 a RN21); a saída da escalação do titular que
-passa a `DOENTE`, na mesma transação da alteração de condição (RN19, prevista
-para o C15); inicialização do projeto React e integração HTTP. A arquitetura descrita
+Pendentes: partidas, histórico de partidas e classificação (RN20 e RN21);
+inicialização do projeto React e integração HTTP. A arquitetura descrita
 é uma proposta de organização para a implementação já aprovada por mim.
 
 ## Uso de inteligência artificial

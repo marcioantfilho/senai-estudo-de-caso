@@ -50,6 +50,22 @@ export function readInteger(body: JsonObject, field: string, range: Range): numb
   return value;
 }
 
+/** Lista JSON com exatamente `size` inteiros distintos dentro da faixa (V2). */
+export function readDistinctIntegerList(body: JsonObject, field: string, size: number, range: Range): number[] {
+  const value = readRequired(body, field);
+  if (!Array.isArray(value) || value.length !== size) {
+    return rejectInvalid(`O campo ${field} deve ser uma lista com exatamente ${size} itens.`);
+  }
+  const allValid = value.every((item) => typeof item === 'number' && Number.isInteger(item) && isWithin(item, range));
+  if (!allValid) {
+    return rejectInvalid(`O campo ${field} deve conter só inteiros de ${range.min} a ${range.max}.`);
+  }
+  if (new Set(value).size !== value.length) {
+    return rejectInvalid(`O campo ${field} não pode ter itens repetidos.`);
+  }
+  return value as number[];
+}
+
 /** V5: valor de lista exatamente como escrito. */
 export function readEnum<T extends string>(body: JsonObject, field: string, values: readonly T[]): T {
   const value = readRequired(body, field);

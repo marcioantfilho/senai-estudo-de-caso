@@ -1,5 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../infrastructure/database/prisma.service';
+import { TransactionRunner } from '../../../infrastructure/database/transaction-runner';
+import { removeStarter } from '../../league/infrastructure/lineup-slots';
 import { PlayerFilter, PlayerRepository } from '../application/player.repository';
 import { PhysicalCondition } from '../domain/physical-condition';
 import { NewPlayer, Player, PlayerProfile } from '../domain/player';
@@ -7,7 +9,10 @@ import { toPlayer } from './player-row.mapper';
 
 @Injectable()
 export class PrismaPlayerRepository extends PlayerRepository {
-  constructor(private readonly prisma: PrismaService) {
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly transactions: TransactionRunner,
+  ) {
     super();
   }
 
@@ -43,9 +48,14 @@ export class PrismaPlayerRepository extends PlayerRepository {
     return toPlayer(row);
   }
 
-  async updateCondition(id: number, condition: PhysicalCondition): Promise<Player> {
-    const row = await this.prisma.player.update({ where: { id }, data: { condition } });
-    return toPlayer(row);
+  updateCondition(id: number, condition: PhysicalCondition, leaveLineup: boolean): Promise<Player> {
+    return this.transactions.run(async (client) => {
+      const row = await client.player.update({ where: { id }, data: { condition } });
+      if (leaveLineup) {
+        await removeStarter(client, id);
+      }
+      return toPlayer(row);
+    });
   }
 
   async markDeleted(id: number, deletedAt: Date): Promise<void> {

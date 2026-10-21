@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { BusinessRuleException } from '../../../shared/http/api.exception';
+import { canBeStarter } from '../../league/domain/lineup';
 import { PhysicalCondition } from '../domain/physical-condition';
 import { describePlayer, PlayerDetails } from '../domain/player';
 import { canChangeCondition } from '../domain/player-rules';
@@ -19,6 +20,7 @@ export class ChangePlayerConditionUseCase {
       throw new BusinessRuleException('O jogador DOENTE não pode passar direto para APTO.');
     }
 
-    return describePlayer(await this.players.updateCondition(id, condition));
+    const leaveLineup = !canBeStarter(condition);
+    return describePlayer(await this.players.updateCondition(id, condition, leaveLineup));
   }
 }
