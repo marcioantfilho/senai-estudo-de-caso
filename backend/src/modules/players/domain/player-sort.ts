@@ -1,6 +1,6 @@
 import { chainComparators, Comparator } from '../../../shared/domain/comparison';
 import { compareAlphabetically } from '../../../shared/domain/text-comparison';
-import { PlayerDetails } from './player';
+import { Player, PlayerDetails } from './player';
 import { POSITIONS } from './position';
 
 export const PLAYER_SORT_OPTIONS = ['name', 'value_asc', 'value_desc', 'age_asc', 'age_desc', 'position'] as const;
@@ -10,19 +10,24 @@ export type PlayerSortOption = (typeof PLAYER_SORT_OPTIONS)[number];
 export const DEFAULT_PLAYER_SORT: readonly PlayerSortOption[] = ['name'];
 export const MAX_PLAYER_SORT_CRITERIA = 2;
 
-type PlayerComparator = Comparator<PlayerDetails>;
+type SquadMember = Pick<Player, 'id' | 'name' | 'position'>;
 
-const byName: PlayerComparator = (left, right) => compareAlphabetically(left.name, right.name);
-const byId: PlayerComparator = (left, right) => left.id - right.id;
+const byName: Comparator<SquadMember> = (left, right) => compareAlphabetically(left.name, right.name);
+const byId: Comparator<SquadMember> = (left, right) => left.id - right.id;
+const byPosition: Comparator<SquadMember> = (left, right) =>
+  POSITIONS.indexOf(left.position) - POSITIONS.indexOf(right.position);
+
+/** RN11: elenco, escalação e titulares da partida na ordem GOL, ZAG, LAT, MEI, ATA, depois nome e id. */
+export const compareSquadOrder: Comparator<SquadMember> = chainComparators([byPosition, byName, byId]);
 
 /** RN07: valor é o de mercado; posição na ordem GOL, ZAG, LAT, MEI, ATA. */
-const COMPARATORS: Record<PlayerSortOption, PlayerComparator> = {
+const COMPARATORS: Record<PlayerSortOption, Comparator<PlayerDetails>> = {
   name: byName,
   value_asc: (left, right) => left.marketValue - right.marketValue,
   value_desc: (left, right) => right.marketValue - left.marketValue,
   age_asc: (left, right) => left.age - right.age,
   age_desc: (left, right) => right.age - left.age,
-  position: (left, right) => POSITIONS.indexOf(left.position) - POSITIONS.indexOf(right.position),
+  position: byPosition,
 };
 
 /** Campo ordenado por cada opção; o mesmo campo não pode aparecer duas vezes no `sort`. */
@@ -31,6 +36,6 @@ export function sortField(option: PlayerSortOption): string {
 }
 
 /** RN07: os critérios na ordem pedida e, no empate, o nome e depois o id. */
-export function comparePlayers(criteria: readonly PlayerSortOption[]): PlayerComparator {
+export function comparePlayers(criteria: readonly PlayerSortOption[]): Comparator<PlayerDetails> {
   return chainComparators([...criteria.map((option) => COMPARATORS[option]), byName, byId]);
 }

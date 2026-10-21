@@ -1,5 +1,5 @@
 import { describePlayer, PlayerDetails } from '../../players/domain/player';
-import { comparePlayers } from '../../players/domain/player-sort';
+import { compareSquadOrder } from '../../players/domain/player-sort';
 import { Formation, isLineupComplete } from '../domain/lineup';
 import { StoredLineup } from './league.repository';
 
@@ -10,15 +10,12 @@ export interface LineupDetails {
   players: PlayerDetails[];
 }
 
-/** RN11: titulares na ordem do elenco (GOL, ZAG, LAT, MEI, ATA, depois nome e id). */
-const squadOrder = comparePlayers(['position']);
-
 /** RN19: sem escalação, formação nula e lista vazia; incompleta mantém a formação salva. */
 export function describeLineup({ clubId, formation, starters }: StoredLineup): LineupDetails {
   return {
     clubId,
     formation,
     complete: formation !== null && isLineupComplete(starters.length),
-    players: starters.map(describePlayer).sort(squadOrder),
+    players: starters.map(describePlayer).sort(compareSquadOrder),
   };
 }

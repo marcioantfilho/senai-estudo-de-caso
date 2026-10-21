@@ -233,10 +233,9 @@ utilize `npm.cmd` nos comandos npm.
 **Prefixo HTTP:** `/api/v1`. Rotas disponíveis: `GET /players`, `POST /players`,
 `GET /players/{id}`, `PUT /players/{id}`, `PATCH /players/{id}/condition` e
 `DELETE /players/{id}`, `POST /players/{id}/buy`, `POST /players/{id}/sell`,
-`GET /clubs`, `POST /clubs`, `GET /clubs/{id}`, `GET /clubs/{id}/transactions` e
-`GET /clubs/{id}/transactions/export`, `PUT /clubs/{id}/lineup` e
-`GET /clubs/{id}/lineup`;
-as demais respondem 404. O bootstrap configura CORS restrito e os sinais
+`GET /clubs`, `POST /clubs`, `GET /clubs/{id}`, `GET /clubs/{id}/transactions`,
+`GET /clubs/{id}/transactions/export`, `PUT /clubs/{id}/lineup`,
+`GET /clubs/{id}/lineup` e `POST /matches`; as demais respondem 404. O bootstrap configura CORS restrito e os sinais
 de encerramento do NestJS. Porta ou origem inválidas impedem a inicialização,
 com uma mensagem de configuração.
 
@@ -259,7 +258,8 @@ sigla do clube, o caixa inicial, o patrimônio e a ordem dos clubes e do elenco
 (RN10 e RN11), a taxa e o limite de 50% do caixa (RN13), o fim da fidelidade,
 os dias restantes, o percentual e o valor da multa (RN15) e o lucro, a comissão
 e o crédito da venda (RN16), o histórico de transações e seu resumo (RN17) e o
-arquivo CSV da exportação (RN18) e as formações e a escalação (RN19), com
+arquivo CSV da exportação (RN18), as formações e a escalação (RN19) e a partida,
+com o exemplo completo de Águias FC × Delta FC (RN20), com
 as tabelas de exemplo do enunciado. Os testes ficam em `backend/test/`.
 
 ### Frontend
@@ -452,6 +452,23 @@ Atualizarei os requisitos conforme vou avançando e realizando-as.
   condição é gravada e o titular sai da escalação na mesma transação, pela mesma
   operação usada na venda (`removeStarter`); a formação continua a salva e o
   jogador não volta sozinho quando deixa de estar `DOENTE`.
+- Partida (`POST /matches`): o placar é calculado em `league/domain/match.ts`,
+  sem sorteio. Os titulares seguem a ordem do elenco (a mesma `compareSquadOrder`
+  do elenco e da escalação), os 6 duelos são sempre disputados e gol é só ataque
+  maior que defesa. Titular `MAL_CONDICIONADO` usa `matchValue` (× 0,85, inteiro
+  mais próximo, meio para cima); os atributos do jogador não mudam.
+- Numa única transação, trava os dois clubes para leitura (`FOR SHARE`, em ordem
+  de id), lê as escalações, joga e grava a partida e os 6 duelos com os nomes,
+  posições, condições, atributos e valores do momento. A trava compartilhada
+  impede que uma troca de escalação simultânea seja lida pela metade, sem
+  bloquear outras partidas dos mesmos clubes. A partida não muda caixa,
+  jogadores nem escalações, e o mesmo confronto pode se repetir sem limite.
+- Ordem das recusas da partida: corpo (`400`, inclusive mandante igual ao
+  visitante), mandante e depois visitante inexistentes (`404`) e escalação
+  incompleta de um dos clubes (`409`).
+- O `club_name` da partida é o nome atual do clube; como não há edição de
+  clubes, ele é sempre o do momento da partida, e a tabela `partidas` segue o
+  enunciado, sem coluna de nome.
 
 ## Funcionalidades não implementadas
 
@@ -466,9 +483,11 @@ a saída do titular vendido da escalação (RN19); consulta do histórico de
 transações com resumo (`GET /clubs/{id}/transactions`, RN17) e exportação em CSV
 (`GET /clubs/{id}/transactions/export`, RN18); escalação (`PUT` e
 `GET /clubs/{id}/lineup`, RN19), com a saída do titular vendido ou que passa a
-`DOENTE` na mesma transação da operação.
+`DOENTE` na mesma transação da operação; partidas (`POST /matches`, RN20), com a
+gravação atômica dos 6 duelos.
 
-Pendentes: partidas, histórico de partidas e classificação (RN20 e RN21);
+Pendentes: histórico de partidas e classificação (`GET /matches`,
+`GET /matches/{id}` e `GET /standings`, RN21);
 inicialização do projeto React e integração HTTP. A arquitetura descrita
 é uma proposta de organização para a implementação já aprovada por mim.
 

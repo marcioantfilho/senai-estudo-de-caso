@@ -7,6 +7,7 @@ import { Player } from '../../players/domain/player';
 import { toPlayer } from '../../players/infrastructure/player-row.mapper';
 import { LeagueRepository, LeagueSession, StoredLineup } from '../application/league.repository';
 import { Formation } from '../domain/lineup';
+import { Duel, PlayedMatch } from '../domain/match';
 
 type LineupReader = Pick<TransactionClient, 'club' | 'lineupSlot'>;
 
@@ -47,12 +48,58 @@ class PrismaLeagueSession implements LeagueSession {
     await this.client.lineupSlot.deleteMany({ where: { clubId } });
     await this.client.lineupSlot.createMany({ data: playerIds.map((playerId) => ({ clubId, playerId })) });
     await this.client.club.update({ where: { id: clubId }, data: { formation } });
+    return this.findLineup(clubId);
+  }
+
+  async lockClubsForMatch(ids: readonly number[]): Promise<Club[]> {
+    await this.client.$queryRaw`SELECT id FROM clubes WHERE id = ANY(${[...ids]}) ORDER BY id FOR SHARE`;
+    const rows = await this.client.club.findMany({ where: { id: { in: [...ids] } } });
+    return rows.map(toClub);
+  }
+
+  async findLineup(clubId: number): Promise<StoredLineup> {
     const lineup = await loadLineup(this.client, clubId);
     if (lineup === null) {
-      throw new Error(`Clube ${clubId} sumiu durante a escalação.`);
+      throw new Error(`Clube ${clubId} não encontrado dentro da transação.`);
     }
     return lineup;
   }
+
+  async recordMatch({ home, away, duels }: PlayedMatch, playedAt: Date): Promise<number> {
+    const row = await this.client.match.create({
+      data: {
+        homeClubId: home.clubId,
+        awayClubId: away.clubId,
+        homeGoals: home.goals,
+        awayGoals: away.goals,
+        homeFormation: home.formation,
+        awayFormation: away.formation,
+        playedAt,
+        duels: { create: duels.map(toDuelRow) },
+      },
+    });
+    return row.id;
+  }
+}
+
+function toDuelRow({ order, attackingClubId, attacker, defender, goal }: Duel) {
+  return {
+    order,
+    attackingClubId,
+    attackerId: attacker.playerId,
+    defenderId: defender.playerId,
+    attackerName: attacker.playerName,
+    defenderName: defender.playerName,
+    attackerPosition: attacker.position,
+    defenderPosition: defender.position,
+    attackerCondition: attacker.condition,
+    defenderCondition: defender.condition,
+    attackAttribute: attacker.attribute,
+    defenseAttribute: defender.attribute,
+    attackValue: attacker.value,
+    defenseValue: defender.value,
+    goal,
+  };
 }
 
 async function loadLineup(client: LineupReader, clubId: number): Promise<StoredLineup | null> {

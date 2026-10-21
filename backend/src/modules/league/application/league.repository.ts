@@ -1,6 +1,7 @@
 import { Club } from '../../clubs/domain/club';
 import { Player } from '../../players/domain/player';
 import { Formation } from '../domain/lineup';
+import { PlayedMatch } from '../domain/match';
 
 export interface StoredLineup {
   clubId: number;
@@ -17,6 +18,14 @@ export interface LeagueSession {
 
   /** Substitui a formação e os titulares do clube por inteiro e devolve a escalação gravada. */
   replaceLineup(clubId: number, formation: Formation, playerIds: readonly number[]): Promise<StoredLineup>;
+
+  /** Clubes encontrados entre os ids, travados para leitura em ordem de id: a escalação não muda até o fim. */
+  lockClubsForMatch(ids: readonly number[]): Promise<Club[]>;
+
+  findLineup(clubId: number): Promise<StoredLineup>;
+
+  /** Grava a partida, as formações e os 6 duelos; devolve o id da partida. */
+  recordMatch(match: PlayedMatch, playedAt: Date): Promise<number>;
 }
 
 export abstract class LeagueRepository {
