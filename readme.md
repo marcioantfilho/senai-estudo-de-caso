@@ -1,4 +1,4 @@
-# Liga de futebol — estudo de caso SENAI/PE
+# Liga de futebol (PASSE) — estudo de caso SENAI/PE
 
 Aplicação para administrar jogadores, clubes, transferências e partidas de uma
 liga fictícia. O fluxo previsto é: cadastrar jogadores e clubes, comprar e vender
