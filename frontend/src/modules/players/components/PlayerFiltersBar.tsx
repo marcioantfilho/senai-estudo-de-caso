@@ -1,10 +1,11 @@
 import Dropdown from '../../../shared/components/Dropdown'
 import { formatMoney } from '../../../shared/format/money'
+import { normalizeName } from '../../../shared/validation/text'
 import type { Club } from '../../clubs/api/clubs-api'
 import { CONDITIONS, POSITIONS } from '../api/players-api'
 import { CONDITION_LABELS, POSITION_LABELS } from '../player-labels'
 import { FREE_WITH_CLUB_REASON, rangeLabel, type PlayerFilters } from '../player-filters'
-import { normalizeName, SEARCH_MIN_LENGTH, validateAgeFilter, validateMoneyFilter } from '../player-validation'
+import { SEARCH_MIN_LENGTH, validateAgeFilter, validateMoneyFilter } from '../player-validation'
 import RangeFilter from './RangeFilter'
 
 type PlayerFiltersBarProps = {

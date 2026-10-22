@@ -421,6 +421,39 @@ input[aria-invalid='true'] {
   font-size: 0.75rem;
 }
 
+/* Página e quadro de lista */
+.page-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.list-card {
+  margin-top: 1.25rem;
+  overflow: visible;
+  border: 1px solid var(--color-border);
+  border-radius: 0.75rem;
+}
+
+.list-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.list-footnote {
+  margin: 0.75rem 0 0;
+  color: var(--color-muted);
+  font-size: 0.8125rem;
+}
+
 /* Tabela */
 .table-scroll {
   overflow-x: auto;

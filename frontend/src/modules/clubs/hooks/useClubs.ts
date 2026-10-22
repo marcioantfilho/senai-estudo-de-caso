@@ -7,7 +7,7 @@ export function useClubs() {
 
   useEffect(() => {
     const controller = new AbortController()
-    listClubs(controller.signal)
+    listClubs('name', controller.signal)
       .then(setClubs)
       .catch(() => undefined)
     return () => controller.abort()

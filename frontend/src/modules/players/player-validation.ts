@@ -1,3 +1,5 @@
+import { validateTextLength } from '../../shared/validation/text'
+
 const NAME_LENGTH = { min: 3, max: 100 }
 export const AGE_RANGE = { min: 16, max: 45 }
 export const AGILITY_RANGE = { min: 1, max: 100 }
@@ -7,25 +9,11 @@ export const SEARCH_MIN_LENGTH = 2
 
 const INTEGER_FORMAT = /^\d+$/
 const DECIMAL_FORMAT = /^\d+([.,]\d{1,2})?$/
-const REPEATED_SPACES = / +/g
 
 type Range = { min: number; max: number }
 
-/** V4: espaços do início e do fim removidos e repetidos juntados, como a API grava. */
-export function normalizeName(name: string): string {
-  return name.trim().replace(REPEATED_SPACES, ' ')
-}
-
 export function validateName(name: string): string | undefined {
-  const normalized = normalizeName(name)
-  if (normalized.length === 0) {
-    return 'Informe o nome.'
-  }
-  const length = [...normalized].length
-  if (length < NAME_LENGTH.min || length > NAME_LENGTH.max) {
-    return `Use de ${NAME_LENGTH.min} a ${NAME_LENGTH.max} caracteres.`
-  }
-  return undefined
+  return validateTextLength(name, NAME_LENGTH, 'Informe o nome.')
 }
 
 export function validateInteger(raw: string, range: Range, missingMessage: string): string | undefined {

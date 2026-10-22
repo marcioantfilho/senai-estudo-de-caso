@@ -4,16 +4,10 @@ import FormField from '../../../shared/components/FormField'
 import InlineAlert from '../../../shared/components/InlineAlert'
 import Modal from '../../../shared/components/Modal'
 import { useAsyncAction } from '../../../shared/hooks/useAsyncAction'
+import { normalizeName } from '../../../shared/validation/text'
 import { registerPlayer, type Player, type Position } from '../api/players-api'
 import { ATTRIBUTE_LABELS, type AttributeField } from '../player-labels'
-import {
-  AGE_RANGE,
-  AGILITY_RANGE,
-  ATTRIBUTE_RANGE,
-  normalizeName,
-  validateInteger,
-  validateName,
-} from '../player-validation'
+import { AGE_RANGE, AGILITY_RANGE, ATTRIBUTE_RANGE, validateInteger, validateName } from '../player-validation'
 import IntegerField from './IntegerField'
 import PositionPicker from './PositionPicker'
 

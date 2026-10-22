@@ -1,3 +1,4 @@
+import DataTable, { type Column } from '../../../shared/components/DataTable'
 import Dropdown from '../../../shared/components/Dropdown'
 import { formatMoney } from '../../../shared/format/money'
 import type { Club } from '../../clubs/api/clubs-api'
@@ -16,48 +17,46 @@ type PlayerTableProps = {
 /** Linhas na ordem devolvida por `GET /players`. */
 export default function PlayerTable({ players, clubs, onAction }: PlayerTableProps) {
   const clubById = new Map(clubs.map((club) => [club.id, club]))
+  const columns: Column<Player>[] = [
+    {
+      key: 'name',
+      header: 'Jogador',
+      render: (player) => (
+        <>
+          <span className="cell-title">{player.name}</span>
+          <span className="cell-subtitle">{POSITION_LABELS[player.position]}</span>
+        </>
+      ),
+    },
+    { key: 'position', header: 'Posição', render: (player) => <span className="tag">{player.position}</span> },
+    { key: 'overall', header: 'Overall', numeric: true, cellClassName: 'strong', render: (player) => player.overall },
+    { key: 'agility', header: 'Agilidade', numeric: true, render: (player) => player.agility },
+    { key: 'age', header: 'Idade', numeric: true, render: (player) => player.age },
+    { key: 'condition', header: 'Condição', render: (player) => <ConditionBadge condition={player.condition} /> },
+    { key: 'base_value', header: 'Valor base', numeric: true, cellClassName: 'muted', render: (player) => formatMoney(player.base_value) },
+    {
+      key: 'market_value',
+      header: 'Valor de mercado',
+      numeric: true,
+      cellClassName: 'strong',
+      render: (player) => formatMoney(player.market_value),
+    },
+    {
+      key: 'club',
+      header: 'Clube',
+      render: (player) => (
+        <ClubCell club={player.club_id === null ? null : clubById.get(player.club_id)} clubId={player.club_id} />
+      ),
+    },
+    {
+      key: 'actions',
+      header: <span className="visually-hidden">Ações</span>,
+      cellClassName: 'actions-cell',
+      render: (player) => <PlayerRowMenu player={player} onAction={onAction} />,
+    },
+  ]
 
-  return (
-    <div className="table-scroll">
-      <table className="data-table">
-        <thead>
-          <tr>
-            <th scope="col">Jogador</th>
-            <th scope="col">Posição</th>
-            <th scope="col" className="numeric">Overall</th>
-            <th scope="col" className="numeric">Agilidade</th>
-            <th scope="col" className="numeric">Idade</th>
-            <th scope="col">Condição</th>
-            <th scope="col" className="numeric">Valor base</th>
-            <th scope="col" className="numeric">Valor de mercado</th>
-            <th scope="col">Clube</th>
-            <th scope="col"><span className="visually-hidden">Ações</span></th>
-          </tr>
-        </thead>
-        <tbody>
-          {players.map((player) => (
-            <tr key={player.id}>
-              <td>
-                <span className="cell-title">{player.name}</span>
-                <span className="cell-subtitle">{POSITION_LABELS[player.position]}</span>
-              </td>
-              <td><span className="tag">{player.position}</span></td>
-              <td className="numeric strong">{player.overall}</td>
-              <td className="numeric">{player.agility}</td>
-              <td className="numeric">{player.age}</td>
-              <td><ConditionBadge condition={player.condition} /></td>
-              <td className="numeric muted">{formatMoney(player.base_value)}</td>
-              <td className="numeric strong">{formatMoney(player.market_value)}</td>
-              <td><ClubCell club={player.club_id === null ? null : clubById.get(player.club_id)} clubId={player.club_id} /></td>
-              <td className="actions-cell">
-                <PlayerRowMenu player={player} onAction={onAction} />
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  )
+  return <DataTable columns={columns} rows={players} rowKey={(player) => player.id} />
 }
 
 function ClubCell({ club, clubId }: { club: Club | null | undefined; clubId: number | null }) {

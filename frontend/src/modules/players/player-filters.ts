@@ -1,7 +1,8 @@
+import { normalizeName } from '../../shared/validation/text'
 import type { Club } from '../clubs/api/clubs-api'
 import type { Condition, PlayerListQuery, PlayerSort, Position } from './api/players-api'
 import { CONDITION_LABELS } from './player-labels'
-import { normalizeName, SEARCH_MIN_LENGTH, toApiDecimal } from './player-validation'
+import { SEARCH_MIN_LENGTH, toApiDecimal } from './player-validation'
 
 export const PAGE_SIZE = 10
 
