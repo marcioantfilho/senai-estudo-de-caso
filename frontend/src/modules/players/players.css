@@ -103,6 +103,12 @@
   text-align: right;
 }
 
+.row-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
 .pagination {
   display: flex;
   flex-wrap: wrap;

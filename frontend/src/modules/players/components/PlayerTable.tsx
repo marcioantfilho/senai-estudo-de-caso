@@ -6,7 +6,7 @@ import type { Player } from '../api/players-api'
 import { POSITION_LABELS } from '../player-labels'
 import ConditionBadge from './ConditionBadge'
 
-export type PlayerAction = 'details' | 'edit' | 'condition' | 'delete'
+export type PlayerAction = 'details' | 'edit' | 'condition' | 'delete' | 'buy'
 
 type PlayerTableProps = {
   players: Player[]
@@ -52,7 +52,16 @@ export default function PlayerTable({ players, clubs, onAction }: PlayerTablePro
       key: 'actions',
       header: <span className="visually-hidden">Ações</span>,
       cellClassName: 'actions-cell',
-      render: (player) => <PlayerRowMenu player={player} onAction={onAction} />,
+      render: (player) => (
+        <span className="row-actions">
+          {player.club_id === null && (
+            <button type="button" className="button button-secondary" onClick={() => onAction('buy', player)}>
+              Comprar
+            </button>
+          )}
+          <PlayerRowMenu player={player} onAction={onAction} />
+        </span>
+      ),
     },
   ]
 

@@ -1,0 +1,31 @@
+.purchase-form {
+  display: grid;
+  gap: 1rem;
+}
+
+.purchase-form select {
+  width: 100%;
+  padding: 0.55rem 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+}
+
+.purchase-form select:focus-visible {
+  outline: 3px solid var(--color-primary-strong);
+  outline-offset: 1px;
+}
+
+.purchase-form select[aria-invalid='true'] {
+  border-color: var(--color-danger);
+}
+
+.purchase-market-value {
+  text-align: right;
+}
+
+.purchase-loyalty {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}

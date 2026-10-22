@@ -3,7 +3,11 @@ import { EmptyState, ErrorState, LoadingState } from '../../shared/components/Li
 import { formatMoney } from '../../shared/format/money'
 import { useDebouncedValue } from '../../shared/hooks/useDebouncedValue'
 import { useToast } from '../../shared/hooks/useToast'
+import type { Club } from '../clubs/api/clubs-api'
 import { useClubs } from '../clubs/hooks/useClubs'
+import type { Purchase } from '../market/api/market-api'
+import BuyPlayerModal from '../market/components/BuyPlayerModal'
+import PurchaseResultModal from '../market/components/PurchaseResultModal'
 import type { Player, PlayerSort } from './api/players-api'
 import ActiveFilterChips from './components/ActiveFilterChips'
 import ChangeConditionModal from './components/ChangeConditionModal'
@@ -29,6 +33,8 @@ type Dialog =
   | { type: 'edit'; player: Player }
   | { type: 'condition'; player: Player }
   | { type: 'delete'; player: Player }
+  | { type: 'buy'; player: Player }
+  | { type: 'bought'; purchase: Purchase; club: Club }
 
 export default function PlayersPage() {
   const [filters, setFilters] = useState<PlayerFilters>(EMPTY_FILTERS)
@@ -92,6 +98,11 @@ export default function PlayersPage() {
       title: 'Condição alterada',
       description: `${player.name} agora está ${CONDITION_LABELS[player.condition]}. Valor de mercado: ${formatMoney(player.market_value)}.`,
     })
+  }
+
+  const handleBought = (purchase: Purchase, club: Club) => {
+    refresh()
+    setDialog({ type: 'bought', purchase, club })
   }
 
   const handleDeleted = (player: Player) => {
@@ -185,6 +196,10 @@ export default function PlayersPage() {
         />
       )}
       {dialog?.type === 'delete' && <DeletePlayerDialog player={dialog.player} onClose={closeDialog} onDeleted={handleDeleted} />}
+      {dialog?.type === 'buy' && <BuyPlayerModal player={dialog.player} onClose={closeDialog} onBought={handleBought} />}
+      {dialog?.type === 'bought' && (
+        <PurchaseResultModal purchase={dialog.purchase} club={dialog.club} onClose={closeDialog} />
+      )}
       {detailsId !== null && (
         <PlayerDetailsDrawer
           playerId={detailsId}
