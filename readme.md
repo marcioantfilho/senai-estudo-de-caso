@@ -484,6 +484,29 @@ Atualizarei os requisitos conforme vou avançando e realizando-as.
   clubes, inclusive os que ainda não jogaram; nada é gravado. Ordem: pontos,
   saldo de gols, gols marcados, nome pela ordem alfabética das Premissas e, para
   nomes iguais nessa comparação (como "Águias FC" e "Aguias FC"), id crescente.
+- Frontend: todas as chamadas à API passam por `frontend/src/shared/api/http-client.ts`
+  e pelas funções `*-api.ts` de cada módulo; os componentes usam essas funções ou
+  hooks de dados, sem `fetch` direto. A recusa da API vira `ApiError`, e a tela
+  mostra o `message` devolvido.
+- Tela de Jogadores: segue o fluxo e a disposição do mockup dentro do shell do
+  C02. O filtro "só livres" é a aba Livres (`free=true`), com Todos (sem `free`)
+  e Em clubes (`free=false`). Livres e o filtro por clube não se combinam: com
+  um deles ativo, o outro fica desabilitado, com o motivo.
+- A busca vai à API 300 ms depois da última tecla e só com 2 caracteres ou mais
+  (a API recusa 1 caractere); com 1, a tela mostra a dica e não busca.
+- Os formulários validam antes de enviar só os campos obrigatórios, o tamanho
+  do nome (3 a 100) e as faixas de um campo (idade, agilidade, atributos e
+  potencial); o formato do nome e as regras que cruzam campos (soma dos
+  atributos, potencial, agilidade com 35 anos ou mais) ficam com a API, e o
+  `message` aparece no formulário.
+- Recusas previsíveis impedidas na tela, com o motivo: idade menor que a atual,
+  mudança de posição de jogador com clube e de Doente direto para Apto. "Excluir"
+  só aparece para jogador livre.
+- Depois de cadastrar, editar, alterar a condição ou excluir, a lista e o painel
+  de detalhes são lidos de novo da API, sem recarregar a página; o botão da ação
+  fica desabilitado durante o envio, e um clique duplo envia um só pedido.
+- Ao escolher Doente para jogador com clube, a tela consulta
+  `GET /clubs/{id}/lineup` e avisa se ele é titular e vai sair da escalação.
 
 ## Funcionalidades não implementadas
 
@@ -502,7 +525,13 @@ transações com resumo (`GET /clubs/{id}/transactions`, RN17) e exportação em
 gravação atômica dos 6 duelos; histórico de partidas e classificação
 (`GET /matches`, `GET /matches/{id}` e `GET /standings`, RN21).
 
-Pendentes: inicialização do projeto React e integração HTTP. A arquitetura descrita
+Frontend implementado: tela de Jogadores (F01 a F04), com listagem paginada,
+busca, filtros, ordenação, cadastro, edição, alteração de condição, exclusão e
+painel de detalhes.
+
+Pendentes no frontend: Clubes, compra, venda, histórico, escalação, partidas e
+classificação (F05 a F14), e os comandos de instalação e execução do frontend
+neste README. A arquitetura descrita
 é uma proposta de organização para a implementação já aprovada por mim.
 
 ## Uso de inteligência artificial
