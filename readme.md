@@ -269,8 +269,48 @@ as tabelas de exemplo do enunciado. Os testes ficam em `backend/test/`.
 A inicialização do React/Vite e seus comandos de instalação e execução ficam
 para o C02.
 
-O Compose atual sobe apenas o banco; não atende ao diferencial B5 de subir
-interface, API e banco com um único comando.
+## Docker Compose completo: interface, API e banco
+
+Caminho alternativo, sem Node.js na máquina: um único comando sobe o banco, a
+API e a interface. Pré-requisitos: Docker Engine com Docker Compose v2. Na raiz
+do repositório:
+
+```sh
+cp .env.example .env
+docker compose up -d --build --wait --wait-timeout 600
+```
+
+No PowerShell, substitua o primeiro comando por `Copy-Item .env.example .env`.
+
+- Interface: `http://localhost:8080`
+- Origem da API: `http://localhost:3000` (prefixo `/api/v1`)
+
+O `--wait` termina quando o banco e a API respondem. A API aplica as migrations
+ao iniciar (`prisma migrate deploy`) e só depois aceita requisições. As imagens
+são construídas a partir deste repositório, sobre as imagens públicas
+`node:22-bookworm-slim`, `nginx:1.27-alpine` e `postgres:16-alpine`:
+
+| Serviço | Origem | O que faz |
+| --- | --- | --- |
+| `db` | `postgres:16-alpine` | PostgreSQL, com o volume `postgres_data` |
+| `backend` | `backend/Dockerfile` | Instala com `npm ci`, compila e inicia a API depois das migrations |
+| `frontend` | `frontend/Dockerfile` | Compila a interface com `VITE_API_ORIGIN=http://localhost:3000` e a serve pelo nginx |
+
+No Compose completo, `FRONTEND_ORIGIN` é `http://localhost:8080` e
+`DATABASE_URL` aponta para o serviço `db`, montada com as variáveis do `.env` da
+raiz. Use `localhost`, e não `127.0.0.1`, no navegador: o CORS libera só a
+origem `http://localhost:8080`.
+
+Para parar, preservando os dados: `docker compose down`. Para recriar o banco
+do zero, **apagando os dados do volume deste projeto**:
+
+```sh
+docker compose down --volumes
+docker compose up -d --build --wait --wait-timeout 600
+```
+
+O Compose completo e a execução com Node.js usam as mesmas portas 3000 e 5432;
+use um caminho de cada vez.
 
 ## Rastreabilidade inicial
 
@@ -298,7 +338,12 @@ Atualizarei os requisitos conforme vou avançando e realizando-as.
 
 ## Decisões e premissas
 
-- Docker limitado ao PostgreSQL nesta etapa, sem Dockerfiles da aplicação.
+- O Compose sobe o banco sozinho (`docker compose up -d db`) ou, sem indicar o
+  serviço, o banco, a API e a interface. Na imagem da interface, a origem da API
+  é definida na compilação, porque o Vite a grava no código gerado; o nginx só
+  serve os arquivos estáticos.
+- No Compose completo, as migrations rodam ao iniciar a API, para que o banco
+  recriado pelo `down --volumes` já suba com as tabelas.
 - Arquitetura modular em camadas, sem microsserviços, event sourcing, CQRS ou
   autenticação, conforme a aprovação inicial.
 - Identificadores de código em inglês; nomes HTTP e do banco seguirão o enunciado.
