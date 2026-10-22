@@ -22,7 +22,17 @@ export class ApiError extends Error {
 }
 
 export async function apiRequest<T>(path: string, options: RequestOptions = {}): Promise<T> {
-  const { method = 'GET', query, body, signal } = options
+  const response = await send(path, options)
+  return (response.status === 204 ? undefined : await response.json()) as T
+}
+
+/** Arquivo devolvido pela API (como o CSV da RN18), sem alterar os bytes; as recusas continuam em JSON. */
+export async function apiDownload(path: string, options: Pick<RequestOptions, 'query' | 'signal'> = {}): Promise<Blob> {
+  const response = await send(path, options)
+  return response.blob()
+}
+
+async function send(path: string, { method = 'GET', query, body, signal }: RequestOptions): Promise<Response> {
   let response: Response
   try {
     response = await fetch(buildUrl(path, query), {
@@ -41,7 +51,7 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
   if (!response.ok) {
     throw new ApiError(await readErrorMessage(response), response.status)
   }
-  return (response.status === 204 ? undefined : await response.json()) as T
+  return response
 }
 
 function buildUrl(path: string, query: Record<string, QueryValue> = {}): string {

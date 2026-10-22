@@ -34,3 +34,53 @@
   display: grid;
   gap: 1rem;
 }
+
+.transaction-filters {
+  justify-content: flex-start;
+}
+
+.transaction-export {
+  margin-left: auto;
+}
+
+.transaction-summary {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 1rem;
+  margin: 0;
+  padding: 1rem;
+  border-top: 1px solid var(--color-border);
+}
+
+.transaction-summary dt {
+  color: var(--color-muted);
+  font-size: 0.8125rem;
+}
+
+.transaction-summary dd {
+  margin: 0.35rem 0 0;
+}
+
+.transaction-summary-value {
+  display: block;
+  font-size: 1.125rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.transaction-summary-note {
+  display: block;
+  color: var(--color-muted);
+  font-size: 0.75rem;
+}
+
+.list-footnote.transaction-footnote {
+  margin: 0;
+  padding: 0 1rem 1rem;
+}
+
+@media (max-width: 900px) {
+  .transaction-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

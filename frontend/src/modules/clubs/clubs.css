@@ -90,6 +90,10 @@
   font-size: 0.8125rem;
 }
 
+.club-tabs {
+  margin: 1.5rem 0 1rem;
+}
+
 .list-card-header {
   padding: 1rem;
   border-bottom: 1px solid var(--color-border);
