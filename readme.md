@@ -636,6 +636,19 @@ Atualizarei os requisitos conforme vou avançando e realizando-as.
   custo total, fim da fidelidade, contrato e novo caixa como a API devolveu, sem
   calcular nada na tela. Depois da compra, a lista de jogadores é lida de novo
   da API e mostra o clube do jogador.
+- Venda (F08): o botão Vender fica em cada jogador do elenco, na página do
+  clube, e abre uma confirmação com o valor de mercado, o valor de compra e o
+  contrato (fim da fidelidade, dias restantes e % de multa) lidos de
+  `GET /clubs/{id}`. Só ao confirmar a tela envia `POST /players/{id}/sell`, sem
+  corpo; durante o envio, os botões ficam desabilitados e um clique duplo envia
+  um só pedido. Se o jogador for titular (`GET /clubs/{id}/lineup`), a
+  confirmação avisa que ele sai da escalação.
+- O resultado da venda mostra valor de compra, valor de venda, dias restantes,
+  multa, lucro, comissão, crédito no caixa, contrato e novo caixa como a API
+  devolveu, inclusive lucro negativo e comissão 0,00; lucro e crédito aparecem
+  com sinal ("+" ou "-"), só na formatação. Depois da venda, e também de uma
+  recusa, a página do clube é lida de novo da API, sem recarregar a página; a
+  recusa mostra o `message` na confirmação.
 
 ## Funcionalidades não implementadas
 
@@ -659,10 +672,11 @@ busca, filtros, ordenação, cadastro, edição, alteração de condição, excl
 painel de detalhes; tela de Clubes (F05 e F07), com listagem ordenável por nome
 e por patrimônio, criação de clube e página do clube com caixa, valor do
 elenco, patrimônio e elenco com os contratos; compra a partir da lista de
-jogadores livres (F06), com o resultado da compra.
+jogadores livres (F06), com o resultado da compra; venda pelo elenco do clube
+(F08), com confirmação e o resultado da venda.
 
-Pendentes no frontend: venda, histórico de transações e exportação,
-escalação, partidas e classificação (F08 a F14). A arquitetura descrita
+Pendentes no frontend: histórico de transações e exportação, escalação,
+partidas e classificação (F09 a F14). A arquitetura descrita
 é uma proposta de organização para a implementação já aprovada por mim.
 
 ## Uso de inteligência artificial
