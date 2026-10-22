@@ -7,7 +7,9 @@ import { Player } from '../../players/domain/player';
 import { toPlayer } from '../../players/infrastructure/player-row.mapper';
 import { LeagueRepository, LeagueSession, StoredLineup } from '../application/league.repository';
 import { Formation } from '../domain/lineup';
-import { Duel, PlayedMatch } from '../domain/match';
+import { Duel, MatchSummary, PlayedMatch, RecordedMatch } from '../domain/match';
+import { MatchScore } from '../domain/standings';
+import { MATCH_CLUBS, MATCH_WITH_DUELS, toMatchSummary, toRecordedMatch } from './match-row.mapper';
 
 type LineupReader = Pick<TransactionClient, 'club' | 'lineupSlot'>;
 
@@ -26,6 +28,26 @@ export class PrismaLeagueRepository extends LeagueRepository {
 
   findLineup(clubId: number): Promise<StoredLineup | null> {
     return loadLineup(this.prisma, clubId);
+  }
+
+  async findMatches(clubId?: number): Promise<MatchSummary[]> {
+    const rows = await this.prisma.match.findMany({
+      where: clubId === undefined ? undefined : { OR: [{ homeClubId: clubId }, { awayClubId: clubId }] },
+      include: MATCH_CLUBS,
+      orderBy: [{ playedAt: 'desc' }, { id: 'desc' }],
+    });
+    return rows.map(toMatchSummary);
+  }
+
+  async findMatch(id: number): Promise<RecordedMatch | null> {
+    const row = await this.prisma.match.findUnique({ where: { id }, include: MATCH_WITH_DUELS });
+    return row === null ? null : toRecordedMatch(row);
+  }
+
+  findMatchScores(): Promise<MatchScore[]> {
+    return this.prisma.match.findMany({
+      select: { homeClubId: true, awayClubId: true, homeGoals: true, awayGoals: true },
+    });
   }
 }
 

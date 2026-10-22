@@ -64,6 +64,17 @@ export interface PlayedMatch {
   duels: Duel[];
 }
 
+/** RN21: partida gravada, sem os duelos, como no histórico de partidas. */
+export interface MatchSummary extends Omit<PlayedMatch, 'duels'> {
+  id: number;
+  playedAt: Date;
+}
+
+/** RN20 e RN21: partida gravada com os 6 duelos, como foram gravados. */
+export interface RecordedMatch extends MatchSummary {
+  duels: Duel[];
+}
+
 type OutfieldPlayer = Player & { position: OutfieldPosition };
 
 interface ArrangedTeam {
@@ -145,7 +156,8 @@ function countGoals(duels: readonly Duel[], clubId: number): number {
   return duels.filter((duel) => duel.attackingClubId === clubId && duel.goal).length;
 }
 
-function matchResult(homeGoals: number, awayGoals: number): MatchResult {
+/** RN20: quem marcou mais gols; gols iguais dão empate. */
+export function matchResult(homeGoals: number, awayGoals: number): MatchResult {
   if (homeGoals > awayGoals) {
     return 'MANDANTE';
   }

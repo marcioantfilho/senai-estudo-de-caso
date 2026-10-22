@@ -2,17 +2,12 @@ import { Injectable } from '@nestjs/common';
 import { BusinessRuleException, ResourceNotFoundException } from '../../../shared/http/api.exception';
 import { Club } from '../../clubs/domain/club';
 import { isLineupComplete } from '../domain/lineup';
-import { PlayedMatch, playMatch, TeamSheet } from '../domain/match';
+import { playMatch, RecordedMatch, TeamSheet } from '../domain/match';
 import { LeagueRepository, LeagueSession } from './league.repository';
 
 export interface MatchOrder {
   homeClubId: number;
   awayClubId: number;
-}
-
-export interface RecordedMatch extends PlayedMatch {
-  id: number;
-  playedAt: Date;
 }
 
 /** RN20: joga a partida na hora e grava tudo numa única transação; recusada, nada é gravado. */

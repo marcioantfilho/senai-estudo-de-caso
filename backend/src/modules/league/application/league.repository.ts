@@ -1,7 +1,8 @@
 import { Club } from '../../clubs/domain/club';
 import { Player } from '../../players/domain/player';
 import { Formation } from '../domain/lineup';
-import { PlayedMatch } from '../domain/match';
+import { MatchSummary, PlayedMatch, RecordedMatch } from '../domain/match';
+import { MatchScore } from '../domain/standings';
 
 export interface StoredLineup {
   clubId: number;
@@ -33,4 +34,12 @@ export abstract class LeagueRepository {
 
   /** `null` quando o clube não existe. */
   abstract findLineup(clubId: number): Promise<StoredLineup | null>;
+
+  /** RN21: da mais recente para a mais antiga (mesmo instante: maior id primeiro), sem os duelos. */
+  abstract findMatches(clubId?: number): Promise<MatchSummary[]>;
+
+  /** RN21: a partida com os 6 duelos na ordem gravada; `null` quando não existe. */
+  abstract findMatch(id: number): Promise<RecordedMatch | null>;
+
+  abstract findMatchScores(): Promise<MatchScore[]>;
 }

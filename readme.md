@@ -235,7 +235,8 @@ utilize `npm.cmd` nos comandos npm.
 `DELETE /players/{id}`, `POST /players/{id}/buy`, `POST /players/{id}/sell`,
 `GET /clubs`, `POST /clubs`, `GET /clubs/{id}`, `GET /clubs/{id}/transactions`,
 `GET /clubs/{id}/transactions/export`, `PUT /clubs/{id}/lineup`,
-`GET /clubs/{id}/lineup` e `POST /matches`; as demais respondem 404. O bootstrap configura CORS restrito e os sinais
+`GET /clubs/{id}/lineup`, `POST /matches`, `GET /matches`, `GET /matches/{id}` e
+`GET /standings`; as demais respondem 404. O bootstrap configura CORS restrito e os sinais
 de encerramento do NestJS. Porta ou origem inválidas impedem a inicialização,
 com uma mensagem de configuração.
 
@@ -259,7 +260,8 @@ sigla do clube, o caixa inicial, o patrimônio e a ordem dos clubes e do elenco
 os dias restantes, o percentual e o valor da multa (RN15) e o lucro, a comissão
 e o crédito da venda (RN16), o histórico de transações e seu resumo (RN17) e o
 arquivo CSV da exportação (RN18), as formações e a escalação (RN19) e a partida,
-com o exemplo completo de Águias FC × Delta FC (RN20), com
+com o exemplo completo de Águias FC × Delta FC (RN20), e a classificação, com os
+exemplos de 6 clubes e de 3 clubes (RN21), com
 as tabelas de exemplo do enunciado. Os testes ficam em `backend/test/`.
 
 ### Frontend
@@ -469,6 +471,19 @@ Atualizarei os requisitos conforme vou avançando e realizando-as.
 - O `club_name` da partida é o nome atual do clube; como não há edição de
   clubes, ele é sempre o do momento da partida, e a tabela `partidas` segue o
   enunciado, sem coluna de nome.
+- Histórico de partidas (`GET /matches` e `GET /matches/{id}`): monta cada
+  partida a partir das linhas gravadas em `partidas` e `duelos_partida`, sem
+  consultar os jogadores atuais nem recalcular duelos; o `result` sai dos gols
+  gravados, pela mesma `matchResult` usada ao jogar. A lista vem da mais recente
+  para a mais antiga (mesmo instante: maior id primeiro), sem `duels`; o detalhe
+  traz os 6 duelos na ordem gravada. Não há paginação.
+- O filtro `club_id` do histórico aceita só inteiros positivos no formato dos
+  query params (`400` fora disso); clube inexistente → `404`.
+- Classificação (`GET /standings`): calculada a cada consulta em
+  `league/domain/standings.ts`, a partir dos placares gravados e de todos os
+  clubes, inclusive os que ainda não jogaram; nada é gravado. Ordem: pontos,
+  saldo de gols, gols marcados, nome pela ordem alfabética das Premissas e, para
+  nomes iguais nessa comparação (como "Águias FC" e "Aguias FC"), id crescente.
 
 ## Funcionalidades não implementadas
 
@@ -484,11 +499,10 @@ transações com resumo (`GET /clubs/{id}/transactions`, RN17) e exportação em
 (`GET /clubs/{id}/transactions/export`, RN18); escalação (`PUT` e
 `GET /clubs/{id}/lineup`, RN19), com a saída do titular vendido ou que passa a
 `DOENTE` na mesma transação da operação; partidas (`POST /matches`, RN20), com a
-gravação atômica dos 6 duelos.
+gravação atômica dos 6 duelos; histórico de partidas e classificação
+(`GET /matches`, `GET /matches/{id}` e `GET /standings`, RN21).
 
-Pendentes: histórico de partidas e classificação (`GET /matches`,
-`GET /matches/{id}` e `GET /standings`, RN21);
-inicialização do projeto React e integração HTTP. A arquitetura descrita
+Pendentes: inicialização do projeto React e integração HTTP. A arquitetura descrita
 é uma proposta de organização para a implementação já aprovada por mim.
 
 ## Uso de inteligência artificial

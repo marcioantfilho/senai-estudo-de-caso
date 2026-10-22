@@ -1,6 +1,5 @@
 import { formatBrasiliaDateTime } from '../../../shared/http/brasilia-date-time';
-import { RecordedMatch } from '../application/play-match.use-case';
-import { Duel, DuelSide, MatchSide } from '../domain/match';
+import { Duel, DuelSide, MatchSide, MatchSummary, RecordedMatch } from '../domain/match';
 
 interface MatchSideResponse {
   club_id: number;
@@ -26,25 +25,32 @@ interface DuelResponse {
   goal: boolean;
 }
 
-/** Formato de `POST /matches` e `GET /matches/{id}` (2.4.2). */
-export interface MatchResponse {
+/** Formato de cada item de `GET /matches`: a partida sem os duelos (2.4.2). */
+export interface MatchSummaryResponse {
   id: number;
   played_at: string;
   home: MatchSideResponse;
   away: MatchSideResponse;
   result: string;
+}
+
+/** Formato de `POST /matches` e `GET /matches/{id}` (2.4.2). */
+export interface MatchResponse extends MatchSummaryResponse {
   duels: DuelResponse[];
 }
 
-export function toMatchResponse(match: RecordedMatch): MatchResponse {
+export function toMatchSummaryResponse(match: MatchSummary): MatchSummaryResponse {
   return {
     id: match.id,
     played_at: formatBrasiliaDateTime(match.playedAt),
     home: toSideResponse(match.home),
     away: toSideResponse(match.away),
     result: match.result,
-    duels: match.duels.map(toDuelResponse),
   };
+}
+
+export function toMatchResponse(match: RecordedMatch): MatchResponse {
+  return { ...toMatchSummaryResponse(match), duels: match.duels.map(toDuelResponse) };
 }
 
 function toSideResponse(side: MatchSide): MatchSideResponse {
