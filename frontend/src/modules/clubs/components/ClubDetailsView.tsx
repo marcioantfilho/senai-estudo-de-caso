@@ -1,6 +1,10 @@
+import { useCallback, useState } from 'react'
 import { EmptyState, ErrorState, LoadingState } from '../../../shared/components/ListState'
 import { formatMoney } from '../../../shared/format/money'
-import type { ClubDetails } from '../api/clubs-api'
+import type { Sale } from '../../market/api/market-api'
+import SaleResultModal from '../../market/components/SaleResultModal'
+import SellPlayerDialog from '../../market/components/SellPlayerDialog'
+import type { ClubDetails, SquadMember } from '../api/clubs-api'
 import { SQUAD_LIMIT } from '../club-labels'
 import { useClubDetails } from '../hooks/useClubDetails'
 import SquadTable from './SquadTable'
@@ -10,8 +14,20 @@ type ClubDetailsViewProps = {
   onBack: () => void
 }
 
+type Dialog =
+  | { type: 'sell'; player: SquadMember; clubName: string }
+  | { type: 'sold'; sale: Sale; clubName: string; wasStarter: boolean }
+
 export default function ClubDetailsView({ clubId, onBack }: ClubDetailsViewProps) {
   const { state, reload } = useClubDetails(clubId)
+  const [dialog, setDialog] = useState<Dialog | null>(null)
+  const closeDialog = useCallback(() => setDialog(null), [])
+
+  const handleSold = (sale: Sale, wasStarter: boolean) => {
+    reload()
+    setDialog((current) => current && { type: 'sold', sale, clubName: current.clubName, wasStarter })
+  }
+
   const backButton = (
     <button type="button" className="button button-secondary" onClick={onBack}>‹ Voltar para clubes</button>
   )
@@ -20,7 +36,10 @@ export default function ClubDetailsView({ clubId, onBack }: ClubDetailsViewProps
     <section aria-labelledby="club-title">
       <button type="button" className="link-button back-link" onClick={onBack}>‹ Clubes</button>
       {state.status === 'ready' ? (
-        <ClubOverview club={state.club} />
+        <ClubOverview
+          club={state.club}
+          onSell={(player) => setDialog({ type: 'sell', player, clubName: state.club.name })}
+        />
       ) : (
         <div className="list-card">
           {state.status === 'loading' && <LoadingState label="Carregando o elenco…" />}
@@ -36,12 +55,30 @@ export default function ClubDetailsView({ clubId, onBack }: ClubDetailsViewProps
           )}
         </div>
       )}
+
+      {dialog?.type === 'sell' && (
+        <SellPlayerDialog
+          player={dialog.player}
+          clubName={dialog.clubName}
+          onClose={closeDialog}
+          onSold={handleSold}
+          onRefused={reload}
+        />
+      )}
+      {dialog?.type === 'sold' && (
+        <SaleResultModal sale={dialog.sale} clubName={dialog.clubName} wasStarter={dialog.wasStarter} onClose={closeDialog} />
+      )}
     </section>
   )
 }
 
+type ClubOverviewProps = {
+  club: ClubDetails
+  onSell: (player: SquadMember) => void
+}
+
 /** Caixa, valor do elenco, patrimônio e elenco como devolvidos por `GET /clubs/{id}`. */
-function ClubOverview({ club }: { club: ClubDetails }) {
+function ClubOverview({ club, onSell }: ClubOverviewProps) {
   const squadSize = `${club.players.length} de ${SQUAD_LIMIT}`
 
   return (
@@ -78,7 +115,7 @@ function ClubOverview({ club }: { club: ClubDetails }) {
               <h2>Elenco</h2>
               <p>Ordem por posição (GOL, ZAG, LAT, MEI, ATA), depois pelo nome. Contrato calculado para uma venda agora.</p>
             </div>
-            <SquadTable players={club.players} />
+            <SquadTable players={club.players} onSell={onSell} />
           </>
         )}
       </div>

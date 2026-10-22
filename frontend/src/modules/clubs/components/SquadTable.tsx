@@ -6,7 +6,12 @@ import ConditionBadge from '../../players/components/ConditionBadge'
 import type { SquadMember } from '../api/clubs-api'
 
 /** Elenco na ordem devolvida por `GET /clubs/{id}` (RN11), com o contrato calculado pela API. */
-export default function SquadTable({ players }: { players: SquadMember[] }) {
+type SquadTableProps = {
+  players: SquadMember[]
+  onSell: (player: SquadMember) => void
+}
+
+export default function SquadTable({ players, onSell }: SquadTableProps) {
   const columns: Column<SquadMember>[] = [
     { key: 'name', header: 'Jogador', render: (player) => <span className="cell-title">{player.name}</span> },
     { key: 'position', header: 'Posição', render: (player) => <span className="tag">{player.position}</span> },
@@ -34,6 +39,16 @@ export default function SquadTable({ players }: { players: SquadMember[] }) {
       render: (player) => formatInteger(player.contract.remaining_days),
     },
     { key: 'penalty_rate', header: '% de multa', render: (player) => <span className="tag">{player.contract.penalty_rate}%</span> },
+    {
+      key: 'actions',
+      header: <span className="visually-hidden">Ações</span>,
+      cellClassName: 'actions-cell',
+      render: (player) => (
+        <button type="button" className="button button-secondary" onClick={() => onSell(player)}>
+          Vender
+        </button>
+      ),
+    },
   ]
 
   return <DataTable columns={columns} rows={players} rowKey={(player) => player.id} />

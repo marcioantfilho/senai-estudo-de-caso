@@ -27,3 +27,28 @@ export type Purchase = {
 export function buyPlayer(playerId: number, order: PurchaseOrder): Promise<Purchase> {
   return apiRequest<Purchase>(`/players/${playerId}/buy`, { method: 'POST', body: order })
 }
+
+/** Formato de `POST /players/{id}/sell` (2.3.2); `cash_change` é o crédito no caixa. */
+export type Sale = {
+  id: number
+  club_id: number
+  player_id: number
+  player_name: string
+  type: 'VENDA'
+  value: number
+  fee: number
+  penalty: number
+  profit: number
+  cash_change: number
+  created_at: string
+  purchase_value: number
+  remaining_days: number
+  penalty_rate: number
+  contract_status: string
+  club_cash: number
+}
+
+/** A venda não tem corpo (2.3.2). */
+export function sellPlayer(playerId: number): Promise<Sale> {
+  return apiRequest<Sale>(`/players/${playerId}/sell`, { method: 'POST' })
+}
