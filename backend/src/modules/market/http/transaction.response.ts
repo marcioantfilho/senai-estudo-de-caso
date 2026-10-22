@@ -20,6 +20,7 @@ export interface TransactionResponse {
 }
 
 export interface PurchaseResponse extends TransactionResponse {
+  total_cost: number;
   contract: { purchase_value: number; loyalty_until: string; status: string };
   club_cash: number;
 }
@@ -59,10 +60,11 @@ export function toTransactionResponse(transaction: Transaction): TransactionResp
   };
 }
 
-/** Formato de `POST /players/{id}/buy` (2.3.1). */
-export function toPurchaseResponse({ transaction, contract, clubCash }: PurchaseResult): PurchaseResponse {
+/** Formato de `POST /players/{id}/buy` (2.3.1), com o campo adicional `total_cost` (valor + taxa, RN13). */
+export function toPurchaseResponse({ transaction, contract, clubCash, totalCost }: PurchaseResult): PurchaseResponse {
   return {
     ...toTransactionResponse(transaction),
+    total_cost: totalCost,
     contract: {
       purchase_value: contract.purchaseValue,
       loyalty_until: formatBrasiliaDateTime(contract.loyaltyUntil),

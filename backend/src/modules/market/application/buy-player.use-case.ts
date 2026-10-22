@@ -20,6 +20,7 @@ export interface PurchaseResult {
   transaction: Transaction;
   contract: ContractRecord;
   clubCash: number;
+  totalCost: number;
 }
 
 /** RN12 a RN14: compra pelo valor de mercado do instante, numa única transação. */
@@ -70,7 +71,7 @@ export class BuyPlayerUseCase {
         contract,
         clubCash,
       });
-      return { transaction, contract, clubCash };
+      return { transaction, contract, clubCash, totalCost: quote.totalCost };
     });
   }
 }
