@@ -5,10 +5,10 @@ liga fictícia. O fluxo previsto é: cadastrar jogadores e clubes, comprar e ven
 jogadores com contrato de fidelidade, consultar o histórico, escalar titulares,
 jogar partidas e consultar a classificação.
 
-**Etapa atual:** composição inicial do backend NestJS (C01) e base React/Vite
-do frontend (C02), com navegação pelos quatro módulos. O Docker continua limitado ao PostgreSQL; o schema do
-banco (C03) está versionado em migrations e as funcionalidades de negócio
-permanecem pendentes.
+**Etapa atual:** backend com todos os endpoints do enunciado; frontend com as
+telas de Jogadores e de Clubes (lista, criação e página do clube). O Docker
+Compose sobe só o banco ou a aplicação inteira. O que falta está em
+"Funcionalidades não implementadas".
 
 ## Stack e bibliotecas previstas
 
@@ -17,7 +17,7 @@ permanecem pendentes.
 | Backend | NestJS + TypeScript, com Node.js 22 LTS | API HTTP e coordenação dos casos de uso |
 | Frontend | React + Vite + TypeScript | Interface e consumo da API |
 | Persistência | PostgreSQL 16 + Prisma | Dados, migrations e acesso transacional |
-| Ambiente local | Docker Engine + Compose v2 | Execução do PostgreSQL |
+| Ambiente local | Docker Engine + Compose v2 | PostgreSQL e, no Compose completo, a API e a interface |
 
 ### Dependências do backend
 
@@ -27,8 +27,11 @@ permanecem pendentes.
 | `@nestjs/platform-express` | 11.2.7 | Adaptador HTTP padrão do NestJS |
 | `reflect-metadata` | 0.2.2 | Metadados dos decorators usados pelo NestJS |
 | `rxjs` | 7.8.2 | Dependência de execução do NestJS |
+| `@prisma/client` | 6.19.3 | Acesso ao PostgreSQL e transações do banco |
+| `prisma` | 6.19.3 | Migrations e geração do cliente do Prisma |
 | `typescript` | 5.9.3 | Compilação com tipagem estrita |
 | `@types/node` | 22.x | Tipos do runtime Node.js adotado |
+| `@types/express` | 5.0.3 | Tipos da resposta do Express nos controllers (`Location` e CSV) e no tratamento central de erros |
 | `vitest` | 4.1.11 | Testes automatizados dos cálculos de domínio, sem modo de observação |
 
 O `backend/package-lock.json` fixa as versões resolvidas. A instalação é feita
@@ -36,8 +39,24 @@ com `npm ci`. O campo `allowScripts` do `package.json` aprova os scripts de
 instalação do Prisma, que baixam os motores usados pelas migrations e pelo
 cliente; o npm 10 executa esses scripts por padrão, e o npm 12 exige essa
 aprovação. O arquivo `.env` é carregado pelo suporte nativo do Node.js, sem
-biblioteca adicional de configuração. Prisma e as dependências do frontend
-serão adicionados nas respectivas tarefas.
+biblioteca adicional de configuração.
+
+### Dependências do frontend
+
+| Biblioteca | Versão | Uso |
+| --- | --- | --- |
+| `react` e `react-dom` | 19.3.0 | Componentes e renderização da interface |
+| `vite` | 7.3.7 | Servidor de desenvolvimento e build da interface |
+| `@vitejs/plugin-react` | 5.x | Suporte a React e JSX no Vite |
+| `typescript` | 5.9.3 | Tipagem estrita da interface |
+| `@types/react`, `@types/react-dom` e `@types/node` | 19.x e 22.x | Tipos do React e do Node.js (configuração do Vite) |
+| `eslint`, `@eslint/js` e `typescript-eslint` | 9.x e 8.x | Lint do código TypeScript |
+| `eslint-plugin-react-hooks` e `eslint-plugin-react-refresh` | 5.x e 0.4.x | Regras dos hooks do React e do recarregamento do Vite |
+| `globals` | 16.x | Variáveis globais do navegador na configuração do ESLint |
+
+O `frontend/package-lock.json` fixa as versões resolvidas; a instalação é feita
+com `npm ci`. Não há biblioteca de rotas, de estado nem de formulários: o estado
+usa `useState`/`useEffect` e Context API (avisos), e as requisições usam `fetch`.
 
 ## Arquitetura planejada
 
@@ -58,8 +77,7 @@ por fidelidade (isso é inegociável, vide documentação proposta). O frontend 
 e a ordem devolvidos pela API,
 respeitando as exceções expressas no enunciado. O frontend JAMAIS fará recálculos, conforme solicitado.
 
-Estrutura do projeto: a composição e as camadas do backend foram criadas. As
-pastas de Prisma, testes e frontend abaixo representam as próximas etapas.
+Estrutura do projeto:
 
 ```text
 .
@@ -68,6 +86,7 @@ pastas de Prisma, testes e frontend abaixo representam as próximas etapas.
 ├── .env.example
 ├── .gitignore
 ├── backend/
+│   ├── Dockerfile
 │   ├── package.json
 │   ├── package-lock.json
 │   ├── tsconfig.json
@@ -85,15 +104,24 @@ pastas de Prisma, testes e frontend abaixo representam as próximas etapas.
 │           └── league/         # Liga
 │               # Cada módulo: http/, application/, domain/, infrastructure/
 └── frontend/
+    ├── Dockerfile
+    ├── package.json
+    ├── package-lock.json
+    ├── .env.example
     └── src/
         ├── modules/            # players/, clubs/, market/, league/
-        └── shared/             # Cliente HTTP e componentes reutilizados
+        │   # Cada módulo: api/ (chamadas), hooks/ (dados), components/ e a página
+        └── shared/
+            ├── api/            # Cliente HTTP e ApiError
+            ├── components/     # Tabela, campo de formulário, modal, avisos e estados de lista
+            ├── format/         # Moedas, inteiros e datas (só formatação)
+            ├── hooks/          # Ação única por clique e avisos
+            └── validation/     # Normalização (V4) e tamanho de textos
 ```
 
-Cada módulo contém seu arquivo `*.module.ts` e as quatro pastas de camadas.
-Pastas ainda sem casos de uso contêm somente `.gitkeep` para serem preservadas
-no Git. Em Jogadores, cada endpoint tem um caso de uso próprio em `application/`
-(`*.use-case.ts`), que depende da porta `PlayerRepository`, implementada com
+Cada módulo do backend contém seu arquivo `*.module.ts` e as quatro pastas de
+camadas. Cada endpoint tem um caso de uso próprio em `application/`
+(`*.use-case.ts`), que depende de uma porta de repositório, implementada com
 Prisma em `infrastructure/`.
 O `AppModule` registra `PlayersModule`, `ClubsModule`, `MarketModule` e
 `LeagueModule` no mesmo processo.
@@ -205,6 +233,14 @@ A origem deve usar HTTP ou HTTPS, sem caminho, barra final ou curinga. Os valore
 de exemplo também são os padrões quando as variáveis não estão definidas.
 Variáveis já presentes no ambiente têm precedência sobre o `.env`.
 
+Configuração do frontend, em `frontend/.env.example`:
+
+| Variável | Valor de exemplo | Finalidade |
+| --- | --- | --- |
+| `VITE_API_ORIGIN` | `http://localhost:3000` | Origem da API, sem `/api/v1`; lida na compilação do Vite |
+
+Sem a variável, o frontend usa `http://localhost:3000`.
+
 ## Execução da aplicação
 
 ### Backend
@@ -266,8 +302,24 @@ as tabelas de exemplo do enunciado. Os testes ficam em `backend/test/`.
 
 ### Frontend
 
-A inicialização do React/Vite e seus comandos de instalação e execução ficam
-para o C02.
+Pré-requisitos: Node.js **22 LTS, a partir de 22.12.0**, e npm **10 ou superior**.
+Com o backend em execução, em outro terminal, a partir da raiz do repositório:
+
+```sh
+cd frontend
+cp .env.example .env
+npm ci
+npm run dev
+```
+
+**URL do frontend:** `http://localhost:5173`. No PowerShell, substitua
+`cp .env.example .env` por `Copy-Item .env.example .env`.
+
+Para verificar o código com o ESLint, na pasta `frontend/`:
+
+```sh
+npm run lint
+```
 
 ## Docker Compose completo: interface, API e banco
 
@@ -552,6 +604,25 @@ Atualizarei os requisitos conforme vou avançando e realizando-as.
   fica desabilitado durante o envio, e um clique duplo envia um só pedido.
 - Ao escolher Doente para jogador com clube, a tela consulta
   `GET /clubs/{id}/lineup` e avisa se ele é titular e vai sair da escalação.
+- Tela de Clubes: a lista e a página do clube ficam no módulo Clubes, alternadas
+  por estado, sem URL própria para o clube e sem biblioteca de rotas; "Voltar
+  para clubes" lê a lista de novo da API, na ordem escolhida.
+- A lista de clubes ordena por nome, por patrimônio do maior para o menor e do
+  menor para o maior, sempre com `sort` enviado à API e na ordem devolvida.
+- O formulário de clube valida antes de enviar o nome obrigatório de 3 a 60
+  caracteres (depois da V4) e a sigla obrigatória com 3 letras; maiúsculas,
+  acentos, palavras do nome, letras da sigla no nome e nome ou sigla repetidos
+  ficam com a API, e o `message` aparece no formulário. A sigla é enviada como
+  foi digitada.
+- Depois de criar o clube, a tela mostra o aviso de sucesso e abre a página do
+  clube criado, lida de `GET /clubs/{id}`.
+- A página do clube mostra caixa, valor do elenco, patrimônio e o elenco com o
+  contrato de cada jogador como a API devolve. O fim da fidelidade vem em
+  `-03:00` e é só reescrito como DD/MM/AAAA e HH:MM; clube inexistente (`404`)
+  mostra o `message` e o caminho de volta.
+- As tabelas das telas usam o componente compartilhado `DataTable`, e a
+  normalização e o tamanho dos nomes ficam em `shared/validation/text.ts`, usados
+  por Jogadores e Clubes.
 
 ## Funcionalidades não implementadas
 
@@ -572,11 +643,12 @@ gravação atômica dos 6 duelos; histórico de partidas e classificação
 
 Frontend implementado: tela de Jogadores (F01 a F04), com listagem paginada,
 busca, filtros, ordenação, cadastro, edição, alteração de condição, exclusão e
-painel de detalhes.
+painel de detalhes; tela de Clubes (F05 e F07), com listagem ordenável por nome
+e por patrimônio, criação de clube e página do clube com caixa, valor do
+elenco, patrimônio e elenco com os contratos.
 
-Pendentes no frontend: Clubes, compra, venda, histórico, escalação, partidas e
-classificação (F05 a F14), e os comandos de instalação e execução do frontend
-neste README. A arquitetura descrita
+Pendentes no frontend: compra, venda, histórico de transações e exportação,
+escalação, partidas e classificação (F06 e F08 a F14). A arquitetura descrita
 é uma proposta de organização para a implementação já aprovada por mim.
 
 ## Uso de inteligência artificial
