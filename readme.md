@@ -623,6 +623,19 @@ Atualizarei os requisitos conforme vou avançando e realizando-as.
 - As tabelas das telas usam o componente compartilhado `DataTable`, e a
   normalização e o tamanho dos nomes ficam em `shared/validation/text.ts`, usados
   por Jogadores e Clubes.
+- Compra (F06): o botão Comprar aparece nos jogadores livres da tabela e abre o
+  formulário com o clube comprador (lido de `GET /clubs`, com o caixa atual) e o
+  fim da fidelidade em campos de data e hora, interpretados no horário de
+  Brasília e enviados como `AAAA-MM-DDTHH:MM-03:00` (RN01). Antes de enviar, a
+  tela confere só o clube, a data e a hora obrigatórios; o fim da fidelidade em
+  relação ao momento da compra, o limite de 50% do caixa, o elenco cheio e a
+  recompra ficam com a API, e o `message` da recusa aparece no formulário.
+- A resposta de `POST /players/{id}/buy` traz o campo adicional `total_cost`
+  (valor + taxa), vindo do mesmo cálculo da RN13 que confere o limite do caixa;
+  os campos do enunciado não mudam. O resultado da compra mostra valor, taxa,
+  custo total, fim da fidelidade, contrato e novo caixa como a API devolveu, sem
+  calcular nada na tela. Depois da compra, a lista de jogadores é lida de novo
+  da API e mostra o clube do jogador.
 
 ## Funcionalidades não implementadas
 
@@ -645,10 +658,11 @@ Frontend implementado: tela de Jogadores (F01 a F04), com listagem paginada,
 busca, filtros, ordenação, cadastro, edição, alteração de condição, exclusão e
 painel de detalhes; tela de Clubes (F05 e F07), com listagem ordenável por nome
 e por patrimônio, criação de clube e página do clube com caixa, valor do
-elenco, patrimônio e elenco com os contratos.
+elenco, patrimônio e elenco com os contratos; compra a partir da lista de
+jogadores livres (F06), com o resultado da compra.
 
-Pendentes no frontend: compra, venda, histórico de transações e exportação,
-escalação, partidas e classificação (F06 e F08 a F14). A arquitetura descrita
+Pendentes no frontend: venda, histórico de transações e exportação,
+escalação, partidas e classificação (F08 a F14). A arquitetura descrita
 é uma proposta de organização para a implementação já aprovada por mim.
 
 ## Uso de inteligência artificial
