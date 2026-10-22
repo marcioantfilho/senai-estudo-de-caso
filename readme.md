@@ -649,6 +649,23 @@ Atualizarei os requisitos conforme vou avançando e realizando-as.
   com sinal ("+" ou "-"), só na formatação. Depois da venda, e também de uma
   recusa, a página do clube é lida de novo da API, sem recarregar a página; a
   recusa mostra o `message` na confirmação.
+- Histórico (F09 a F11): fica na aba Histórico da página do clube, ao lado da
+  aba Elenco. A tabela mostra as transações na ordem de
+  `GET /clubs/{id}/transactions`, com a variação do caixa e o lucro com sinal
+  ("+" e "-") e "—" no lucro das compras, que é nulo.
+- O filtro de tipo aceita Compra, Venda ou os dois (`type=COMPRA,VENDA`); sem
+  nenhum marcado, `type` não é enviado. A lista de jogadores do filtro vem do
+  histórico sem filtros do clube, com o nome da transação mais recente de cada
+  um, inclusive de quem já saiu do elenco ou foi excluído. Filtro recusado (como
+  `player_id` de jogador excluído, `404`) mostra o `message` da API e o botão
+  para limpar os filtros.
+- Os totais abaixo da tabela são o `summary` da resposta, lido de novo a cada
+  mudança de filtro; a tela não soma nada.
+- Exportar CSV pede `GET /clubs/{id}/transactions/export` com os mesmos filtros
+  da tela e baixa os bytes devolvidos pela API, sem montar o CSV, como
+  `historico-clube-{id}.csv`; a recusa mostra o `message` num aviso. O download
+  usa `apiDownload`, em `shared/api/http-client.ts`, com o mesmo tratamento de
+  erro das chamadas JSON.
 
 ## Funcionalidades não implementadas
 
@@ -673,10 +690,11 @@ painel de detalhes; tela de Clubes (F05 e F07), com listagem ordenável por nome
 e por patrimônio, criação de clube e página do clube com caixa, valor do
 elenco, patrimônio e elenco com os contratos; compra a partir da lista de
 jogadores livres (F06), com o resultado da compra; venda pelo elenco do clube
-(F08), com confirmação e o resultado da venda.
+(F08), com confirmação e o resultado da venda; histórico de transações na
+página do clube (F09 a F11), com filtros por tipo e por jogador, totais do
+`summary` e exportação em CSV.
 
-Pendentes no frontend: histórico de transações e exportação, escalação,
-partidas e classificação (F09 a F14). A arquitetura descrita
+Pendentes no frontend: escalação, partidas e classificação (F12 a F14). A arquitetura descrita
 é uma proposta de organização para a implementação já aprovada por mim.
 
 ## Uso de inteligência artificial
