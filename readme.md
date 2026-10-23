@@ -666,6 +666,26 @@ Atualizarei os requisitos conforme vou avançando e realizando-as.
   `historico-clube-{id}.csv`; a recusa mostra o `message` num aviso. O download
   usa `apiDownload`, em `shared/api/http-client.ts`, com o mesmo tratamento de
   erro das chamadas JSON.
+- Escalação (F12): fica na aba Escalação da página do clube. Ela mostra a
+  escalação de `GET /clubs/{id}/lineup` (formação, `complete` e titulares na
+  ordem devolvida) e, abaixo, o formulário para escalar de novo. Com `complete`
+  falso, a tela avisa que o clube não pode jogar partidas.
+- O formulário mostra as 4 formações e, para a escolhida, as 5 vagas (goleiro e
+  os setores de defesa, meio e ataque da RN19, em `league/formations.ts`). Cada
+  vaga lista só os jogadores do elenco da posição dela; os `DOENTE` aparecem
+  desabilitados. Antes de enviar, a tela exige a formação e um titular em cada
+  vaga, sem repetir jogador, com a mensagem junto ao campo; elenco, condição e
+  posições continuam conferidos pela API, e o `message` da recusa aparece no
+  formulário.
+- O formulário começa com a escalação salva: com titulares a menos (venda ou
+  `DOENTE`), as vagas deles ficam vazias, e quem se recuperou não volta
+  sozinho. Ao trocar a formação, os jogadores já escolhidos que cabem nas novas
+  vagas continuam nelas.
+- Salvar envia `PUT /clubs/{id}/lineup` com a formação e os 5 ids; durante o
+  envio, os botões ficam desabilitados e um clique duplo envia um só pedido. A
+  tela passa a mostrar a escalação da resposta, e Cancelar volta o formulário
+  para ela. A aba lê a escalação de novo da API sempre que é aberta, então
+  vendas e mudanças de condição feitas em outras telas já aparecem.
 
 ## Funcionalidades não implementadas
 
@@ -692,9 +712,10 @@ elenco, patrimônio e elenco com os contratos; compra a partir da lista de
 jogadores livres (F06), com o resultado da compra; venda pelo elenco do clube
 (F08), com confirmação e o resultado da venda; histórico de transações na
 página do clube (F09 a F11), com filtros por tipo e por jogador, totais do
-`summary` e exportação em CSV.
+`summary` e exportação em CSV; escalação na página do clube (F12), com
+formação, um titular por vaga e aviso de escalação incompleta.
 
-Pendentes no frontend: escalação, partidas e classificação (F12 a F14). A arquitetura descrita
+Pendentes no frontend: partidas e classificação (F13 e F14). A arquitetura descrita
 é uma proposta de organização para a implementação já aprovada por mim.
 
 ## Uso de inteligência artificial
