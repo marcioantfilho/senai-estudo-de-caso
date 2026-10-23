@@ -94,3 +94,16 @@
   font-weight: 700;
   font-variant-numeric: tabular-nums;
 }
+
+.league-tabs {
+  margin: 0 0 1rem;
+}
+
+.match-history-toolbar {
+  justify-content: flex-start;
+}
+
+.data-table .match-history-score {
+  text-align: center;
+  white-space: nowrap;
+}

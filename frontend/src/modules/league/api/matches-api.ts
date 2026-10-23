@@ -51,3 +51,33 @@ export type MatchOrder = {
 export function playMatch(order: MatchOrder): Promise<Match> {
   return apiRequest<Match>('/matches', { method: 'POST', body: order })
 }
+
+/** Item de `GET /matches`: a partida sem os duelos (2.4.2). */
+export type MatchSummary = Omit<Match, 'duels'>
+
+/** Item de `GET /standings` (2.4.3), calculado pela API a cada consulta (RN21). */
+export type Standing = {
+  position: number
+  club_id: number
+  club_name: string
+  played: number
+  wins: number
+  draws: number
+  losses: number
+  goals_for: number
+  goals_against: number
+  goal_difference: number
+  points: number
+}
+
+export function listMatches(clubId: number | undefined, signal?: AbortSignal): Promise<MatchSummary[]> {
+  return apiRequest<MatchSummary[]>('/matches', { query: { club_id: clubId }, signal })
+}
+
+export function getMatch(id: number, signal?: AbortSignal): Promise<Match> {
+  return apiRequest<Match>(`/matches/${id}`, { signal })
+}
+
+export function getStandings(signal?: AbortSignal): Promise<Standing[]> {
+  return apiRequest<Standing[]>('/standings', { signal })
+}
