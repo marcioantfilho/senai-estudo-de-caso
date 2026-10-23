@@ -59,3 +59,38 @@
     grid-template-columns: 1fr;
   }
 }
+
+.match-form {
+  display: grid;
+  gap: 1rem;
+}
+
+.match-scoreboard {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 1rem;
+  padding: 1.5rem 1rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.match-side:last-child {
+  text-align: right;
+}
+
+.match-side p,
+.match-score p {
+  margin: 0;
+}
+
+.match-score {
+  display: grid;
+  justify-items: center;
+  gap: 0.35rem;
+}
+
+.match-score-value {
+  font-size: 2rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
