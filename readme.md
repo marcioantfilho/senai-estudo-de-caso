@@ -696,6 +696,21 @@ Atualizarei os requisitos conforme vou avançando e realizando-as.
   a data e a hora e os 6 duelos como a resposta de `POST /matches` os traz:
   clube que ataca, atacante e defensor com posição e condição, atributo, valor
   e gol. Nada é recalculado na tela, nem o efeito da condição nem os gols.
+- Histórico de partidas e classificação (F14): o módulo Liga tem as abas
+  Partidas e Classificação, alternadas por estado, sem biblioteca de rotas. A aba
+  Partidas mostra `GET /matches` na ordem devolvida (data e hora em Brasília,
+  mandante, placar, visitante e resultado), com o filtro por clube (`club_id`);
+  um filtro recusado mostra o `message` e o botão para limpá-lo.
+- "Ver duelos" abre a partida lida de `GET /matches/{id}`, com os 6 duelos
+  gravados; a tela não consulta os jogadores atuais. Logo depois de jogar, a
+  partida aberta é a da resposta do `POST /matches`, e "Voltar para partidas" lê
+  o histórico de novo da API.
+- A aba Classificação mostra `GET /standings` na ordem e com os números
+  devolvidos, inclusive os clubes que ainda não jogaram; a tela não ordena nem
+  calcula pontos, saldo ou posição. O saldo aparece com sinal, só na formatação.
+- Cada aba lê os dados de novo sempre que é aberta, então uma partida nova já
+  aparece no histórico e na classificação, sem recarregar a página. As leituras
+  da Liga usam o hook compartilhado `useApiResource`, em `shared/hooks/`.
 
 ## Funcionalidades não implementadas
 
@@ -724,9 +739,11 @@ jogadores livres (F06), com o resultado da compra; venda pelo elenco do clube
 página do clube (F09 a F11), com filtros por tipo e por jogador, totais do
 `summary` e exportação em CSV; escalação na página do clube (F12), com
 formação, um titular por vaga e aviso de escalação incompleta; tela Partidas
-(F13), com nova partida e o resultado com placar e os 6 duelos.
+(F13), com nova partida e o resultado com placar e os 6 duelos; histórico de
+partidas com filtro por clube e os duelos de cada partida, e classificação
+(F14).
 
-Pendentes no frontend: histórico de partidas e classificação (F14). A arquitetura descrita
+Pendentes no frontend: nenhuma das telas obrigatórias (F01 a F14). A arquitetura descrita
 é uma proposta de organização para a implementação já aprovada por mim.
 
 ## Uso de inteligência artificial
