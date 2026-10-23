@@ -130,7 +130,53 @@ Prisma em `infrastructure/`.
 O `AppModule` registra `PlayersModule`, `ClubsModule`, `MarketModule` e
 `LeagueModule` no mesmo processo.
 
+## Docker Compose completo: interface, API e banco
+
+Caminho principal de execução, sem Node.js na máquina: um único comando sobe o
+banco, a API e a interface. Pré-requisitos: Docker Engine com Docker Compose v2.
+Na raiz do repositório:
+
+```sh
+cp .env.example .env
+docker compose up -d --build --wait --wait-timeout 600
+```
+
+No PowerShell, substitua o primeiro comando por `Copy-Item .env.example .env`.
+
+- Interface: `http://localhost:8080`
+- Origem da API: `http://localhost:3000` (prefixo `/api/v1`)
+
+O `--wait` termina quando o banco e a API respondem. A API aplica as migrations
+ao iniciar (`prisma migrate deploy`) e só depois aceita requisições. As imagens
+são construídas a partir deste repositório, sobre as imagens públicas
+`node:22-bookworm-slim`, `nginx:1.27-alpine` e `postgres:16-alpine`:
+
+| Serviço | Origem | O que faz |
+| --- | --- | --- |
+| `db` | `postgres:16-alpine` | PostgreSQL, com o volume `postgres_data` |
+| `backend` | `backend/Dockerfile` | Instala com `npm ci`, compila e inicia a API depois das migrations |
+| `frontend` | `frontend/Dockerfile` | Compila a interface com `VITE_API_ORIGIN=http://localhost:3000` e a serve pelo nginx |
+
+No Compose completo, `FRONTEND_ORIGIN` é `http://localhost:8080` e
+`DATABASE_URL` aponta para o serviço `db`, montada com as variáveis do `.env` da
+raiz. Use `localhost`, e não `127.0.0.1`, no navegador: o CORS libera só a
+origem `http://localhost:8080`.
+
+Para parar, preservando os dados: `docker compose down`. Para recriar o banco
+do zero, **apagando os dados do volume deste projeto**:
+
+```sh
+docker compose down --volumes
+docker compose up -d --build --wait --wait-timeout 600
+```
+
+O Compose completo e a execução com Node.js usam as mesmas portas 3000 e 5432;
+use um caminho de cada vez.
+
 ## Docker básico: PostgreSQL
+
+Caminho alternativo, para desenvolver com Node.js na máquina: o Compose sobe só
+o banco, e a API e a interface rodam pelos comandos de "Execução da aplicação".
 
 Pré-requisitos: Docker Engine ativo com suporte a contêineres Linux e Docker
 Compose v2. A configuração foi preparada para PostgreSQL 16, usando a
@@ -324,49 +370,6 @@ Para verificar o código com o ESLint, na pasta `frontend/`:
 ```sh
 npm run lint
 ```
-
-## Docker Compose completo: interface, API e banco
-
-Caminho alternativo, sem Node.js na máquina: um único comando sobe o banco, a
-API e a interface. Pré-requisitos: Docker Engine com Docker Compose v2. Na raiz
-do repositório:
-
-```sh
-cp .env.example .env
-docker compose up -d --build --wait --wait-timeout 600
-```
-
-No PowerShell, substitua o primeiro comando por `Copy-Item .env.example .env`.
-
-- Interface: `http://localhost:8080`
-- Origem da API: `http://localhost:3000` (prefixo `/api/v1`)
-
-O `--wait` termina quando o banco e a API respondem. A API aplica as migrations
-ao iniciar (`prisma migrate deploy`) e só depois aceita requisições. As imagens
-são construídas a partir deste repositório, sobre as imagens públicas
-`node:22-bookworm-slim`, `nginx:1.27-alpine` e `postgres:16-alpine`:
-
-| Serviço | Origem | O que faz |
-| --- | --- | --- |
-| `db` | `postgres:16-alpine` | PostgreSQL, com o volume `postgres_data` |
-| `backend` | `backend/Dockerfile` | Instala com `npm ci`, compila e inicia a API depois das migrations |
-| `frontend` | `frontend/Dockerfile` | Compila a interface com `VITE_API_ORIGIN=http://localhost:3000` e a serve pelo nginx |
-
-No Compose completo, `FRONTEND_ORIGIN` é `http://localhost:8080` e
-`DATABASE_URL` aponta para o serviço `db`, montada com as variáveis do `.env` da
-raiz. Use `localhost`, e não `127.0.0.1`, no navegador: o CORS libera só a
-origem `http://localhost:8080`.
-
-Para parar, preservando os dados: `docker compose down`. Para recriar o banco
-do zero, **apagando os dados do volume deste projeto**:
-
-```sh
-docker compose down --volumes
-docker compose up -d --build --wait --wait-timeout 600
-```
-
-O Compose completo e a execução com Node.js usam as mesmas portas 3000 e 5432;
-use um caminho de cada vez.
 
 ## Rastreabilidade inicial
 
