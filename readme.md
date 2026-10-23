@@ -110,12 +110,16 @@ Estrutura do projeto:
     ├── .env.example
     └── src/
         ├── modules/            # players/, clubs/, market/, league/
-        │   # Cada módulo: api/ (chamadas), hooks/ (dados), components/ e a página
+        │   # Cada módulo: api/ (chamadas), hooks/ (dados) e components/; Jogadores,
+        │   # Clubes e Liga têm a página do menu, e Mercado entra nelas (compra,
+        │   # venda e histórico)
         └── shared/
-            ├── api/            # Cliente HTTP e ApiError
-            ├── components/     # Tabela, campo de formulário, modal, avisos e estados de lista
+            ├── api/            # Cliente HTTP (JSON e arquivo) e ApiError
+            ├── browser/        # Entrega de arquivo baixado ao navegador
+            ├── components/     # Tabela, célula de data, campo, modal, avisos, menus,
+            │                   # botões segmentados e estados de lista
             ├── format/         # Moedas, inteiros e datas (só formatação)
-            ├── hooks/          # Ação única por clique e avisos
+            ├── hooks/          # Leitura da API, ação única por clique e avisos
             └── validation/     # Normalização (V4) e tamanho de textos
 ```
 
@@ -623,6 +627,17 @@ Atualizarei os requisitos conforme vou avançando e realizando-as.
 - As tabelas das telas usam o componente compartilhado `DataTable`, e a
   normalização e o tamanho dos nomes ficam em `shared/validation/text.ts`, usados
   por Jogadores e Clubes.
+- Peças repetidas entre telas ficam em componentes compartilhados: `FormField`
+  (campo com rótulo e mensagem), `InlineAlert` e os avisos de `ToastProvider`
+  (mensagens), `ListState` (carregamento, vazio e erro), `OptionMenu` (filtros e
+  ordenações), `SegmentedControl` (abas e escopo da lista), `DateTimeCell` (data e
+  hora nas tabelas) e `PlayerSummary` (cabeçalho dos diálogos de um jogador).
+  As leituras sem regra própria usam `useApiResource`.
+- O menu tem Jogadores, Clubes e Liga. Mercado não tem página própria: a compra
+  fica na lista de jogadores, e a venda, o histórico e a exportação ficam na
+  página do clube.
+- Durante o envio de qualquer ação, os botões do diálogo, inclusive Cancelar,
+  ficam desabilitados.
 - Compra (F06): o botão Comprar aparece nos jogadores livres da tabela e abre o
   formulário com o clube comprador (lido de `GET /clubs`, com o caixa atual) e o
   fim da fidelidade em campos de data e hora, interpretados no horário de
