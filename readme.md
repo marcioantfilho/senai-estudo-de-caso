@@ -686,6 +686,16 @@ Atualizarei os requisitos conforme vou avançando e realizando-as.
   tela passa a mostrar a escalação da resposta, e Cancelar volta o formulário
   para ela. A aba lê a escalação de novo da API sempre que é aberta, então
   vendas e mudanças de condição feitas em outras telas já aparecem.
+- Partidas (F13): o módulo Liga abre na tela Partidas. "Nova partida" pede o
+  mandante e o visitante entre os clubes de `GET /clubs`; antes de enviar, a
+  tela exige os dois e que sejam diferentes, e não confere a escalação: o clube
+  sem os 5 titulares é recusado pela API (`409`), e o `message` aparece no
+  formulário. Durante o envio, os botões ficam desabilitados e um clique duplo
+  cria uma só partida.
+- O resultado mostra o placar (`goals` de cada lado), o `result`, as formações,
+  a data e a hora e os 6 duelos como a resposta de `POST /matches` os traz:
+  clube que ataca, atacante e defensor com posição e condição, atributo, valor
+  e gol. Nada é recalculado na tela, nem o efeito da condição nem os gols.
 
 ## Funcionalidades não implementadas
 
@@ -713,9 +723,10 @@ jogadores livres (F06), com o resultado da compra; venda pelo elenco do clube
 (F08), com confirmação e o resultado da venda; histórico de transações na
 página do clube (F09 a F11), com filtros por tipo e por jogador, totais do
 `summary` e exportação em CSV; escalação na página do clube (F12), com
-formação, um titular por vaga e aviso de escalação incompleta.
+formação, um titular por vaga e aviso de escalação incompleta; tela Partidas
+(F13), com nova partida e o resultado com placar e os 6 duelos.
 
-Pendentes no frontend: partidas e classificação (F13 e F14). A arquitetura descrita
+Pendentes no frontend: histórico de partidas e classificação (F14). A arquitetura descrita
 é uma proposta de organização para a implementação já aprovada por mim.
 
 ## Uso de inteligência artificial
