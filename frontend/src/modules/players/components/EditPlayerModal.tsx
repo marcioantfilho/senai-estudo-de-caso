@@ -63,7 +63,7 @@ export default function EditPlayerModal({ player, onClose, onSaved }: EditPlayer
       onClose={onClose}
       footer={
         <>
-          <button type="button" className="button button-secondary" onClick={onClose}>Cancelar</button>
+          <button type="button" className="button button-secondary" disabled={pending} onClick={onClose}>Cancelar</button>
           <button type="submit" form="edit-player-form" className="button button-primary" disabled={pending}>
             {pending ? 'Salvando…' : 'Salvar alterações'}
           </button>

@@ -1,22 +1,22 @@
 import type { Player, Position } from '../players/api/players-api'
 import type { Formation } from './api/lineup-api'
 
-export type Sector = 'GOL' | 'DEFESA' | 'MEIO' | 'ATAQUE'
+export type Sector = 'GOALKEEPER' | 'DEFENSE' | 'MIDFIELD' | 'ATTACK'
 
 /** RN19: posições aceitas em cada setor; o goleiro fica fora da conta da formação. */
 const SECTOR_POSITIONS: Record<Sector, readonly Position[]> = {
-  GOL: ['GOL'],
-  DEFESA: ['ZAG', 'LAT'],
-  MEIO: ['MEI'],
-  ATAQUE: ['ATA'],
+  GOALKEEPER: ['GOL'],
+  DEFENSE: ['ZAG', 'LAT'],
+  MIDFIELD: ['MEI'],
+  ATTACK: ['ATA'],
 }
 
 /** RN19: as 5 vagas de cada formação, do goleiro ao ataque. */
 export const FORMATION_SLOTS: Record<Formation, readonly Sector[]> = {
-  '3-1': ['GOL', 'DEFESA', 'DEFESA', 'DEFESA', 'ATAQUE'],
-  '2-2': ['GOL', 'DEFESA', 'DEFESA', 'ATAQUE', 'ATAQUE'],
-  '2-1-1': ['GOL', 'DEFESA', 'DEFESA', 'MEIO', 'ATAQUE'],
-  '1-2-1': ['GOL', 'DEFESA', 'MEIO', 'MEIO', 'ATAQUE'],
+  '3-1': ['GOALKEEPER', 'DEFENSE', 'DEFENSE', 'DEFENSE', 'ATTACK'],
+  '2-2': ['GOALKEEPER', 'DEFENSE', 'DEFENSE', 'ATTACK', 'ATTACK'],
+  '2-1-1': ['GOALKEEPER', 'DEFENSE', 'DEFENSE', 'MIDFIELD', 'ATTACK'],
+  '1-2-1': ['GOALKEEPER', 'DEFENSE', 'MIDFIELD', 'MIDFIELD', 'ATTACK'],
 }
 
 export const FORMATION_DESCRIPTIONS: Record<Formation, string> = {
@@ -27,10 +27,10 @@ export const FORMATION_DESCRIPTIONS: Record<Formation, string> = {
 }
 
 export const SECTOR_LABELS: Record<Sector, string> = {
-  GOL: 'Goleiro',
-  DEFESA: 'Defesa',
-  MEIO: 'Meio',
-  ATAQUE: 'Ataque',
+  GOALKEEPER: 'Goleiro',
+  DEFENSE: 'Defesa',
+  MIDFIELD: 'Meio',
+  ATTACK: 'Ataque',
 }
 
 export function sectorPositions(sector: Sector): readonly Position[] {

@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react'
-import Dropdown from '../../../shared/components/Dropdown'
 import { EmptyState, ErrorState, LoadingState } from '../../../shared/components/ListState'
+import OptionMenu from '../../../shared/components/OptionMenu'
 import { formatMoney } from '../../../shared/format/money'
 import { useToast } from '../../../shared/hooks/useToast'
 import { CLUB_SORTS, type Club, type ClubSort } from '../api/clubs-api'
@@ -20,7 +20,7 @@ export default function ClubListView({ sort, onSortChange, onOpenClub }: ClubLis
   const { state, reload } = useClubList(sort)
   const showToast = useToast()
   const closeCreate = useCallback(() => setCreating(false), [])
-  const isEmpty = state.status === 'ready' && state.clubs.length === 0
+  const isEmpty = state.status === 'ready' && state.data.length === 0
 
   const handleCreated = (club: Club) => {
     setCreating(false)
@@ -49,30 +49,15 @@ export default function ClubListView({ sort, onSortChange, onOpenClub }: ClubLis
       <div className="list-card">
         {!isEmpty && (
           <div className="list-toolbar">
-            {state.status === 'ready' ? <ClubCount total={state.clubs.length} /> : <span />}
-            <Dropdown label={`Ordenar: ${CLUB_SORT_LABELS[sort].toLowerCase()}`} align="end">
-              {(close) => (
-                <ul className="menu-list" role="listbox" aria-label="Ordenar por">
-                  <li className="menu-heading">Ordenar por</li>
-                  {CLUB_SORTS.map((option) => (
-                    <li key={option}>
-                      <button
-                        type="button"
-                        role="option"
-                        aria-selected={option === sort}
-                        className="menu-item"
-                        onClick={() => {
-                          onSortChange(option)
-                          close()
-                        }}
-                      >
-                        {CLUB_SORT_LABELS[option]}
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </Dropdown>
+            {state.status === 'ready' ? <ClubCount total={state.data.length} /> : <span />}
+            <OptionMenu
+              label={`Ordenar: ${CLUB_SORT_LABELS[sort].toLowerCase()}`}
+              heading="Ordenar por"
+              align="end"
+              options={CLUB_SORTS.map((value) => ({ value, label: CLUB_SORT_LABELS[value] }))}
+              selected={sort}
+              onSelect={onSortChange}
+            />
           </div>
         )}
         {state.status === 'loading' && <LoadingState label="Carregando clubes…" />}
@@ -90,7 +75,7 @@ export default function ClubListView({ sort, onSortChange, onOpenClub }: ClubLis
             action={<button type="button" className="button button-secondary" onClick={() => setCreating(true)}>+ Novo clube</button>}
           />
         )}
-        {state.status === 'ready' && state.clubs.length > 0 && <ClubTable clubs={state.clubs} onOpenClub={onOpenClub} />}
+        {state.status === 'ready' && state.data.length > 0 && <ClubTable clubs={state.data} onOpenClub={onOpenClub} />}
       </div>
       <p className="list-footnote">Clubes pelo nome por padrão ou pelo patrimônio, com empate desfeito pelo nome.</p>
 

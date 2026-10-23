@@ -105,13 +105,6 @@
   color: #5f6c78;
 }
 
-.module-notice {
-  margin: 2rem 0 0;
-  padding-top: 1.5rem;
-  border-top: 1px solid #e5eaee;
-  color: #5f6c78;
-}
-
 @media (max-width: 640px) {
   .app-header {
     padding: 1rem;

@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { ApiError } from '../../../shared/api/http-client'
 import { saveFile } from '../../../shared/browser/save-file'
-import Dropdown from '../../../shared/components/Dropdown'
 import { EmptyState, ErrorState, LoadingState } from '../../../shared/components/ListState'
+import OptionMenu from '../../../shared/components/OptionMenu'
 import { useAsyncAction } from '../../../shared/hooks/useAsyncAction'
 import { useToast } from '../../../shared/hooks/useToast'
 import { exportClubTransactions, TRANSACTION_TYPES, type TransactionFilter, type TransactionType } from '../api/market-api'
@@ -60,26 +60,17 @@ export default function TransactionHistoryPanel({ clubId }: { clubId: number }) 
             </button>
           ))}
         </div>
-        <Dropdown label={`Jogador: ${selectedPlayer?.name ?? 'todos'}`} active={filter.playerId !== undefined}>
-          {(close) => (
-            <ul className="menu-list" aria-label="Jogador">
-              <li>
-                <button type="button" className="menu-item" aria-selected={filter.playerId === undefined}
-                  onClick={() => { close(); setFilter((current) => ({ ...current, playerId: undefined })) }}>
-                  Todos
-                </button>
-              </li>
-              {participants.map((participant) => (
-                <li key={participant.id}>
-                  <button type="button" className="menu-item" aria-selected={filter.playerId === participant.id}
-                    onClick={() => { close(); setFilter((current) => ({ ...current, playerId: participant.id })) }}>
-                    {participant.name}
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
-        </Dropdown>
+        <OptionMenu
+          label={`Jogador: ${selectedPlayer?.name ?? 'todos'}`}
+          heading="Jogador"
+          active={filter.playerId !== undefined}
+          options={[
+            { value: undefined, label: 'Todos' },
+            ...participants.map((participant) => ({ value: participant.id, label: participant.name })),
+          ]}
+          selected={filter.playerId}
+          onSelect={(playerId) => setFilter((current) => ({ ...current, playerId }))}
+        />
         {filtered && <button type="button" className="link-button" onClick={() => setFilter(EMPTY_FILTER)}>Limpar filtros</button>}
         <button type="button" className="button button-secondary transaction-export" disabled={exporting.pending}
           onClick={() => void exportCsv()}>
@@ -99,14 +90,14 @@ export default function TransactionHistoryPanel({ clubId }: { clubId: number }) 
       )}
       {state.status === 'ready' && (
         <>
-          {state.history.data.length > 0 ? (
-            <TransactionTable transactions={state.history.data} />
+          {state.data.data.length > 0 ? (
+            <TransactionTable transactions={state.data.data} />
           ) : filtered ? (
             <EmptyState title="Nenhuma transação com esses filtros" description="Tire alguns filtros para ver mais transações." action={clearButton} />
           ) : (
             <EmptyState title="Nenhuma transação" description="As compras e as vendas do clube aparecem aqui." />
           )}
-          <TransactionSummaryList summary={state.history.summary} />
+          <TransactionSummaryList summary={state.data.summary} />
           <p className="list-footnote transaction-footnote">Os totais respeitam os filtros. O CSV usa os mesmos filtros da tela.</p>
         </>
       )}

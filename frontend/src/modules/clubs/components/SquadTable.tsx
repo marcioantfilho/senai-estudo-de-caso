@@ -1,16 +1,16 @@
 import DataTable, { type Column } from '../../../shared/components/DataTable'
-import { formatDateTime } from '../../../shared/format/date-time'
+import DateTimeCell from '../../../shared/components/DateTimeCell'
 import { formatMoney } from '../../../shared/format/money'
 import { formatInteger } from '../../../shared/format/number'
 import ConditionBadge from '../../players/components/ConditionBadge'
 import type { SquadMember } from '../api/clubs-api'
 
-/** Elenco na ordem devolvida por `GET /clubs/{id}` (RN11), com o contrato calculado pela API. */
 type SquadTableProps = {
   players: SquadMember[]
   onSell: (player: SquadMember) => void
 }
 
+/** Elenco na ordem devolvida por `GET /clubs/{id}` (RN11), com o contrato calculado pela API e o botão Vender. */
 export default function SquadTable({ players, onSell }: SquadTableProps) {
   const columns: Column<SquadMember>[] = [
     { key: 'name', header: 'Jogador', render: (player) => <span className="cell-title">{player.name}</span> },
@@ -31,7 +31,7 @@ export default function SquadTable({ players, onSell }: SquadTableProps) {
       cellClassName: 'muted',
       render: (player) => formatMoney(player.contract.purchase_value),
     },
-    { key: 'loyalty_until', header: 'Fim da fidelidade', render: (player) => <LoyaltyUntil value={player.contract.loyalty_until} /> },
+    { key: 'loyalty_until', header: 'Fim da fidelidade', render: (player) => <DateTimeCell value={player.contract.loyalty_until} /> },
     {
       key: 'remaining_days',
       header: 'Dias restantes',
@@ -52,14 +52,4 @@ export default function SquadTable({ players, onSell }: SquadTableProps) {
   ]
 
   return <DataTable columns={columns} rows={players} rowKey={(player) => player.id} />
-}
-
-function LoyaltyUntil({ value }: { value: string }) {
-  const { date, time } = formatDateTime(value)
-  return (
-    <>
-      <span className="cell-title">{date}</span>
-      <span className="cell-subtitle">{time}</span>
-    </>
-  )
 }

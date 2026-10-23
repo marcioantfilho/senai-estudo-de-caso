@@ -1,4 +1,6 @@
 import { useCallback, useState } from 'react'
+import type { MenuOption } from '../../shared/components/OptionMenu'
+import SegmentedControl from '../../shared/components/SegmentedControl'
 import { useToast } from '../../shared/hooks/useToast'
 import type { Match } from './api/matches-api'
 import MatchDetailsView from './components/MatchDetailsView'
@@ -10,9 +12,9 @@ import './league.css'
 
 type LeagueTab = 'matches' | 'standings'
 
-const LEAGUE_TABS: readonly (readonly [LeagueTab, string])[] = [
-  ['matches', 'Partidas'],
-  ['standings', 'Classificação'],
+const LEAGUE_TABS: readonly MenuOption<LeagueTab>[] = [
+  { value: 'matches', label: 'Partidas' },
+  { value: 'standings', label: 'Classificação' },
 ]
 
 /** Partida aberta: a recém-jogada vem da resposta do `POST`; a do histórico é lida de `GET /matches/{id}`. */
@@ -56,13 +58,7 @@ export default function LeaguePage() {
         <button type="button" className="button button-primary" onClick={openCreate}>+ Nova partida</button>
       </header>
 
-      <div className="segmented league-tabs" role="group" aria-label="Seções da liga">
-        {LEAGUE_TABS.map(([value, label]) => (
-          <button key={value} type="button" aria-pressed={tab === value} onClick={() => changeTab(value)}>
-            {label}
-          </button>
-        ))}
-      </div>
+      <SegmentedControl label="Seções da liga" className="league-tabs" options={LEAGUE_TABS} selected={tab} onSelect={changeTab} />
 
       {tab === 'standings' && <StandingsTable />}
       {tab === 'matches' && openMatch && (

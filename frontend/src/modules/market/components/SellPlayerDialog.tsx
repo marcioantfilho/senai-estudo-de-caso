@@ -8,7 +8,7 @@ import { formatInteger } from '../../../shared/format/number'
 import { useAsyncAction } from '../../../shared/hooks/useAsyncAction'
 import type { SquadMember } from '../../clubs/api/clubs-api'
 import { useIsStarter } from '../../league/hooks/useIsStarter'
-import { POSITION_LABELS } from '../../players/player-labels'
+import PlayerSummary from '../../players/components/PlayerSummary'
 import { sellPlayer, type Sale } from '../api/market-api'
 import '../market.css'
 
@@ -55,12 +55,7 @@ export default function SellPlayerDialog({ player, clubName, onClose, onSold, on
     >
       <div className="sale-dialog">
         {apiError && <InlineAlert tone="error" title="A venda foi recusada">{apiError}</InlineAlert>}
-        <div className="player-summary">
-          <div>
-            <p className="cell-title">{player.name}</p>
-            <p className="cell-subtitle">{player.position} · {POSITION_LABELS[player.position]} · {player.age} anos</p>
-          </div>
-        </div>
+        <PlayerSummary player={player} />
         <dl className="value-list">
           <div>
             <dt>Valor de mercado</dt>

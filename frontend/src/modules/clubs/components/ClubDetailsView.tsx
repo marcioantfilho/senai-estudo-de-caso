@@ -1,5 +1,7 @@
 import { useCallback, useState } from 'react'
 import { EmptyState, ErrorState, LoadingState } from '../../../shared/components/ListState'
+import type { MenuOption } from '../../../shared/components/OptionMenu'
+import SegmentedControl from '../../../shared/components/SegmentedControl'
 import { formatMoney } from '../../../shared/format/money'
 import LineupPanel from '../../league/components/LineupPanel'
 import type { Sale } from '../../market/api/market-api'
@@ -18,10 +20,10 @@ type ClubDetailsViewProps = {
 
 type ClubTab = 'squad' | 'lineup' | 'history'
 
-const CLUB_TABS: readonly (readonly [ClubTab, string])[] = [
-  ['squad', 'Elenco'],
-  ['lineup', 'Escalação'],
-  ['history', 'Histórico'],
+const CLUB_TABS: readonly MenuOption<ClubTab>[] = [
+  { value: 'squad', label: 'Elenco' },
+  { value: 'lineup', label: 'Escalação' },
+  { value: 'history', label: 'Histórico' },
 ]
 
 type Dialog =
@@ -118,13 +120,7 @@ function ClubOverview({ club, tab, onTabChange, onSell }: ClubOverviewProps) {
         <ClubStat label="Elenco" value={squadSize} note={`Limite de ${SQUAD_LIMIT} jogadores`} />
       </dl>
 
-      <div className="segmented club-tabs" role="group" aria-label="Seções do clube">
-        {CLUB_TABS.map(([value, label]) => (
-          <button key={value} type="button" aria-pressed={tab === value} onClick={() => onTabChange(value)}>
-            {label}
-          </button>
-        ))}
-      </div>
+      <SegmentedControl label="Seções do clube" className="club-tabs" options={CLUB_TABS} selected={tab} onSelect={onTabChange} />
 
       {tab === 'history' && <TransactionHistoryPanel clubId={club.id} />}
       {tab === 'lineup' && <LineupPanel clubId={club.id} clubName={club.name} squad={club.players} />}

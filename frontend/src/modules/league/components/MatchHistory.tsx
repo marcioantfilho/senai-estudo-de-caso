@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import DataTable, { type Column } from '../../../shared/components/DataTable'
-import Dropdown from '../../../shared/components/Dropdown'
+import DateTimeCell from '../../../shared/components/DateTimeCell'
 import { EmptyState, ErrorState, LoadingState } from '../../../shared/components/ListState'
-import { formatDateTime } from '../../../shared/format/date-time'
+import OptionMenu from '../../../shared/components/OptionMenu'
 import { useClubs } from '../../clubs/hooks/useClubs'
 import type { MatchSummary } from '../api/matches-api'
 import { useMatchList } from '../hooks/useMatches'
@@ -24,7 +24,7 @@ export default function MatchHistory({ onOpen, onNewMatch }: MatchHistoryProps) 
   )
 
   const columns: Column<MatchSummary>[] = [
-    { key: 'played_at', header: 'Data e hora', render: (match) => <DateTime value={match.played_at} /> },
+    { key: 'played_at', header: 'Data e hora', render: (match) => <DateTimeCell value={match.played_at} /> },
     { key: 'home', header: 'Mandante', render: (match) => <span className="cell-title">{match.home.club_name}</span> },
     {
       key: 'score',
@@ -51,26 +51,14 @@ export default function MatchHistory({ onOpen, onNewMatch }: MatchHistoryProps) 
         <p>Da mais recente para a mais antiga. "Ver duelos" abre a partida com os 6 duelos gravados.</p>
       </div>
       <div className="list-toolbar match-history-toolbar">
-        <Dropdown label={`Clube: ${selectedClub?.name ?? 'todos'}`} active={clubId !== undefined}>
-          {(close) => (
-            <ul className="menu-list" aria-label="Clube">
-              <li>
-                <button type="button" className="menu-item" aria-selected={clubId === undefined}
-                  onClick={() => { close(); setClubId(undefined) }}>
-                  Todos
-                </button>
-              </li>
-              {clubs.map((club) => (
-                <li key={club.id}>
-                  <button type="button" className="menu-item" aria-selected={clubId === club.id}
-                    onClick={() => { close(); setClubId(club.id) }}>
-                    {club.name}
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
-        </Dropdown>
+        <OptionMenu
+          label={`Clube: ${selectedClub?.name ?? 'todos'}`}
+          heading="Clube"
+          active={clubId !== undefined}
+          options={[{ value: undefined, label: 'Todos' }, ...clubs.map((club) => ({ value: club.id, label: club.name }))]}
+          selected={clubId}
+          onSelect={setClubId}
+        />
         {state.status === 'ready' && <span className="muted">{state.data.length} {state.data.length === 1 ? 'partida' : 'partidas'}</span>}
       </div>
 
@@ -99,15 +87,5 @@ export default function MatchHistory({ onOpen, onNewMatch }: MatchHistoryProps) 
         <DataTable columns={columns} rows={state.data} rowKey={(match) => match.id} />
       )}
     </div>
-  )
-}
-
-function DateTime({ value }: { value: string }) {
-  const { date, time } = formatDateTime(value)
-  return (
-    <>
-      <span className="cell-title">{date}</span>
-      <span className="cell-subtitle">{time}</span>
-    </>
   )
 }

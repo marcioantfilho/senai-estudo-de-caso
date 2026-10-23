@@ -1,4 +1,5 @@
 import Dropdown from '../../../shared/components/Dropdown'
+import OptionMenu from '../../../shared/components/OptionMenu'
 import { formatMoney } from '../../../shared/format/money'
 import { normalizeName } from '../../../shared/validation/text'
 import type { Club } from '../../clubs/api/clubs-api'
@@ -13,8 +14,6 @@ type PlayerFiltersBarProps = {
   clubs: readonly Club[]
   onChange: (changes: Partial<PlayerFilters>) => void
 }
-
-type Option<T> = { value: T | undefined; label: string }
 
 export default function PlayerFiltersBar({ filters, clubs, onChange }: PlayerFiltersBarProps) {
   const searchTooShort = normalizeName(filters.search).length > 0 && [...normalizeName(filters.search)].length < SEARCH_MIN_LENGTH
@@ -42,21 +41,21 @@ export default function PlayerFiltersBar({ filters, clubs, onChange }: PlayerFil
         )}
       </div>
 
-      <OptionsFilter
+      <OptionMenu
         label={filters.position ? `Posição: ${filters.position}` : 'Posição'}
         active={filters.position !== undefined}
         options={[{ value: undefined, label: 'Todas' }, ...POSITIONS.map((value) => ({ value, label: `${value} · ${POSITION_LABELS[value]}` }))]}
         selected={filters.position}
         onSelect={(position) => onChange({ position })}
       />
-      <OptionsFilter
+      <OptionMenu
         label={filters.condition ? `Condição: ${CONDITION_LABELS[filters.condition]}` : 'Condição'}
         active={filters.condition !== undefined}
         options={[{ value: undefined, label: 'Todas' }, ...CONDITIONS.map((value) => ({ value, label: CONDITION_LABELS[value] }))]}
         selected={filters.condition}
         onSelect={(condition) => onChange({ condition })}
       />
-      <OptionsFilter
+      <OptionMenu
         label={selectedClub ? `Clube: ${selectedClub.name}` : 'Clube'}
         active={filters.clubId !== undefined}
         disabled={filters.scope === 'free'}
@@ -92,42 +91,5 @@ export default function PlayerFiltersBar({ filters, clubs, onChange }: PlayerFil
         )}
       </Dropdown>
     </section>
-  )
-}
-
-type OptionsFilterProps<T> = {
-  label: string
-  active: boolean
-  disabled?: boolean
-  disabledReason?: string
-  options: Option<T>[]
-  selected: T | undefined
-  onSelect: (value: T | undefined) => void
-}
-
-function OptionsFilter<T>({ label, active, disabled, disabledReason, options, selected, onSelect }: OptionsFilterProps<T>) {
-  return (
-    <Dropdown label={label} active={active} disabled={disabled} disabledReason={disabledReason}>
-      {(close) => (
-        <ul className="menu-list" role="listbox" aria-label={label}>
-          {options.map((option) => (
-            <li key={String(option.value ?? 'all')}>
-              <button
-                type="button"
-                role="option"
-                aria-selected={option.value === selected}
-                className="menu-item"
-                onClick={() => {
-                  onSelect(option.value)
-                  close()
-                }}
-              >
-                {option.label}
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
-    </Dropdown>
   )
 }

@@ -52,7 +52,7 @@ export default function CreateClubModal({ onClose, onCreated }: CreateClubModalP
       footer={
         <>
           <p className="footer-note">O clube começa com 300,00 em caixa e sem jogadores.</p>
-          <button type="button" className="button button-secondary" onClick={onClose}>Cancelar</button>
+          <button type="button" className="button button-secondary" disabled={pending} onClick={onClose}>Cancelar</button>
           <button type="submit" form="create-club-form" className="button button-primary" disabled={pending}>
             {pending ? 'Criando…' : 'Criar clube'}
           </button>

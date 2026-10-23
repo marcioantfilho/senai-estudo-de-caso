@@ -8,7 +8,7 @@ import { useAsyncAction } from '../../../shared/hooks/useAsyncAction'
 import type { Club } from '../../clubs/api/clubs-api'
 import { useClubs } from '../../clubs/hooks/useClubs'
 import type { Player } from '../../players/api/players-api'
-import { POSITION_LABELS } from '../../players/player-labels'
+import PlayerSummary from '../../players/components/PlayerSummary'
 import { buyPlayer, type Purchase } from '../api/market-api'
 import { toLoyaltyUntil, validatePurchase, type PurchaseDraft, type PurchaseErrors } from '../purchase-validation'
 import '../market.css'
@@ -75,16 +75,15 @@ export default function BuyPlayerModal({ player, onClose, onBought }: BuyPlayerM
         }}
       >
         {apiError && <InlineAlert tone="error" title="Compra recusada">{apiError}</InlineAlert>}
-        <div className="player-summary">
-          <div>
-            <p className="cell-title">{player.name}</p>
-            <p className="cell-subtitle">{player.position} · {POSITION_LABELS[player.position]} · {player.age} anos</p>
-          </div>
-          <div className="purchase-market-value">
-            <span className="cell-subtitle">Valor de mercado</span>
-            <span className="cell-title">{formatMoney(player.market_value)}</span>
-          </div>
-        </div>
+        <PlayerSummary
+          player={player}
+          aside={
+            <div className="purchase-market-value">
+              <span className="cell-subtitle">Valor de mercado</span>
+              <span className="cell-title">{formatMoney(player.market_value)}</span>
+            </div>
+          }
+        />
 
         <FormField
           label="Clube comprador"

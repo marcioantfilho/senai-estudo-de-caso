@@ -1,14 +1,12 @@
 import { useState } from 'react'
 import PlayersPage from './modules/players/PlayersPage'
 import ClubsPage from './modules/clubs/ClubsPage'
-import MarketPage from './modules/market/MarketPage'
 import LeaguePage from './modules/league/LeaguePage'
 import './App.css'
 
 const modules = [
   { id: 'players', label: 'Jogadores', Page: PlayersPage },
   { id: 'clubs', label: 'Clubes', Page: ClubsPage },
-  { id: 'market', label: 'Mercado', Page: MarketPage },
   { id: 'league', label: 'Liga', Page: LeaguePage },
 ] as const
 

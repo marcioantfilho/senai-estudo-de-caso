@@ -5,8 +5,9 @@ import Modal from '../../../shared/components/Modal'
 import { useAsyncAction } from '../../../shared/hooks/useAsyncAction'
 import { useIsStarter } from '../../league/hooks/useIsStarter'
 import { changePlayerCondition, CONDITIONS, type Condition, type Player } from '../api/players-api'
-import { CONDITION_DESCRIPTIONS, CONDITION_LABELS, POSITION_LABELS } from '../player-labels'
+import { CONDITION_DESCRIPTIONS, CONDITION_LABELS } from '../player-labels'
 import ConditionBadge from './ConditionBadge'
+import PlayerSummary from './PlayerSummary'
 
 const SICK_TO_FIT_REASON = 'De Doente não passa direto para Apto.'
 
@@ -40,7 +41,7 @@ export default function ChangeConditionModal({ player, clubName, onClose, onSave
       onClose={onClose}
       footer={
         <>
-          <button type="button" className="button button-secondary" onClick={onClose}>Cancelar</button>
+          <button type="button" className="button button-secondary" disabled={pending} onClick={onClose}>Cancelar</button>
           <button type="submit" form="change-condition-form" className="button button-primary" disabled={pending}>
             {pending ? 'Salvando…' : 'Salvar condição'}
           </button>
@@ -54,13 +55,7 @@ export default function ChangeConditionModal({ player, clubName, onClose, onSave
           void submit()
         }}
       >
-        <div className="player-summary">
-          <div>
-            <p className="cell-title">{player.name}</p>
-            <p className="cell-subtitle">{player.position} · {POSITION_LABELS[player.position]} · {player.age} anos</p>
-          </div>
-          <ConditionBadge condition={player.condition} />
-        </div>
+        <PlayerSummary player={player} aside={<ConditionBadge condition={player.condition} />} />
         <fieldset className="choice-list">
           <legend className="visually-hidden">Nova condição</legend>
           {CONDITIONS.map((option) => {
