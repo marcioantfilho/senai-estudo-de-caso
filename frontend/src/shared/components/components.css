@@ -32,7 +32,8 @@ select {
   color: inherit;
 }
 
-input {
+input,
+select {
   width: 100%;
   padding: 0.55rem 0.75rem;
   border: 1px solid var(--color-border);
@@ -40,12 +41,14 @@ input {
   background: var(--color-surface);
 }
 
-input:focus-visible {
+input:focus-visible,
+select:focus-visible {
   outline: 3px solid var(--color-primary-strong);
   outline-offset: 1px;
 }
 
-input[aria-invalid='true'] {
+input[aria-invalid='true'],
+select[aria-invalid='true'] {
   border-color: var(--color-danger);
 }
 

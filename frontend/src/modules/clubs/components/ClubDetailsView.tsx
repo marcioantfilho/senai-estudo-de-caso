@@ -1,6 +1,7 @@
 import { useCallback, useState } from 'react'
 import { EmptyState, ErrorState, LoadingState } from '../../../shared/components/ListState'
 import { formatMoney } from '../../../shared/format/money'
+import LineupPanel from '../../league/components/LineupPanel'
 import type { Sale } from '../../market/api/market-api'
 import SaleResultModal from '../../market/components/SaleResultModal'
 import SellPlayerDialog from '../../market/components/SellPlayerDialog'
@@ -15,10 +16,11 @@ type ClubDetailsViewProps = {
   onBack: () => void
 }
 
-type ClubTab = 'squad' | 'history'
+type ClubTab = 'squad' | 'lineup' | 'history'
 
 const CLUB_TABS: readonly (readonly [ClubTab, string])[] = [
   ['squad', 'Elenco'],
+  ['lineup', 'Escalação'],
   ['history', 'Histórico'],
 ]
 
@@ -124,9 +126,9 @@ function ClubOverview({ club, tab, onTabChange, onSell }: ClubOverviewProps) {
         ))}
       </div>
 
-      {tab === 'history' ? (
-        <TransactionHistoryPanel clubId={club.id} />
-      ) : (
+      {tab === 'history' && <TransactionHistoryPanel clubId={club.id} />}
+      {tab === 'lineup' && <LineupPanel clubId={club.id} clubName={club.name} squad={club.players} />}
+      {tab === 'squad' && (
         <>
           <div className="list-card">
             {club.players.length === 0 ? (
